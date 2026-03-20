@@ -66,7 +66,7 @@ export default function SidebarUser({ profile, isSelfHosted }: { profile: UserPr
             <Link href="/settings/profile" className="flex items-center gap-2">
               <Sparkles />
               <span className="truncate">{PLANS[profile.membershipPlan as keyof typeof PLANS].name}</span>
-              <span className="ml-auto text-xs text-muted-foreground">{formatBytes(profile.storageUsed)} used</span>
+              <span className="ml-auto text-xs text-muted-foreground">{formatBytes(profile.storageUsed)} usado</span>
             </Link>
           </DropdownMenuItem>
         </DropdownMenuGroup>
@@ -75,14 +75,14 @@ export default function SidebarUser({ profile, isSelfHosted }: { profile: UserPr
           <DropdownMenuItem asChild>
             <Link href="/settings" className="flex items-center gap-2">
               <Settings className="h-4 w-4" />
-              Settings
+              Definições
             </Link>
           </DropdownMenuItem>
           {!isSelfHosted && (
             <DropdownMenuItem asChild>
               <Link href="/api/stripe/portal" className="flex items-center gap-2">
                 <CreditCard className="h-4 w-4" />
-                Billing
+                Faturação
               </Link>
             </DropdownMenuItem>
           )}
@@ -93,7 +93,7 @@ export default function SidebarUser({ profile, isSelfHosted }: { profile: UserPr
             <DropdownMenuItem asChild>
               <span onClick={signOut} className="flex items-center gap-2 text-red-600 cursor-pointer">
                 <LogOut className="h-4 w-4" />
-                Log out
+                Terminar Sessão
               </span>
             </DropdownMenuItem>
           </>

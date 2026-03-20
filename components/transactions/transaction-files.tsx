@@ -13,6 +13,7 @@ export default function TransactionFiles({ transaction, files }: { transaction: 
   const [isUploading, setIsUploading] = useState(false)
 
   const handleDeleteFile = async (fileId: string) => {
+    if (!confirm("Tem a certeza que quer remover este ficheiro?")) return
     await deleteTransactionFileAction(transaction.id, fileId)
   }
 
@@ -62,8 +63,8 @@ export default function TransactionFiles({ transaction, files }: { transaction: 
           ) : (
             <>
               <Upload className="w-8 h-8 text-gray-400" />
-              <p className="text-sm text-gray-500">Add more files to this invoice</p>
-              <p className="text-xs text-gray-500">(or just drop them on this page)</p>
+              <p className="text-sm text-gray-500">Adicionar mais ficheiros a esta fatura</p>
+              <p className="text-xs text-gray-500">(ou largue-os nesta página)</p>
             </>
           )}
           <input

@@ -21,7 +21,6 @@ export async function GET(request: Request) {
     const zip = new JSZip()
     const rootFolder = zip.folder("data")
     if (!rootFolder) {
-      console.error("Failed to create zip folder")
       return new NextResponse("Internal Server Error", { status: 500 })
     }
 
@@ -45,13 +44,11 @@ export async function GET(request: Request) {
         const jsonContent = await modelToJSON(user.id, backup)
         rootFolder.file(backup.filename, jsonContent)
       } catch (error) {
-        console.error(`Error exporting table ${backup.filename}:`, error)
       }
     }
 
     const uploadsFolder = rootFolder.folder("uploads")
     if (!uploadsFolder) {
-      console.error("Failed to create uploads folder")
       return new NextResponse("Internal Server Error", { status: 500 })
     }
 
@@ -90,7 +87,6 @@ export async function GET(request: Request) {
           lastProgressUpdate = now
         }
       } catch (error) {
-        console.error(`Error reading file ${file}:`, error)
       }
     }
 
@@ -104,11 +100,10 @@ export async function GET(request: Request) {
     return new NextResponse(archive, {
       headers: {
         "Content-Type": "application/octet-stream",
-        "Content-Disposition": `attachment; filename="taxhacker-backup.zip"`,
+        "Content-Disposition": `attachment; filename="ledge-backup.zip"`,
       },
     })
   } catch (error) {
-    console.error("Error exporting database:", error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }

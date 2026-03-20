@@ -368,7 +368,7 @@ export function InvoicePDF({ data }: { data: InvoiceFormData }): ReactElement {
         {/* Notes */}
         {data.notes && (
           <View style={styles.notes}>
-            <Text style={styles.notesLabel}>Notes:</Text>
+            <Text style={styles.notesLabel}>Notas:</Text>
             <Text>{data.notes}</Text>
           </View>
         )}

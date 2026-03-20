@@ -18,8 +18,8 @@ import { Metadata } from "next"
 import Link from "next/link"
 
 export const metadata: Metadata = {
-  title: "Unsorted",
-  description: "Analyze unsorted files",
+  title: "Por Classificar",
+  description: "Analisar ficheiros por classificar",
 }
 
 export default async function UnsortedPage() {
@@ -34,7 +34,7 @@ export default async function UnsortedPage() {
   return (
     <>
       <header className="flex items-center justify-between">
-        <h2 className="text-3xl font-bold tracking-tight">You have {files.length} unsorted files</h2>
+        <h2 className="text-3xl font-bold tracking-tight">Tem {files.length} ficheiros por classificar</h2>
         {files.length > 1 && <AnalyzeAllButton />}
       </header>
 
@@ -46,13 +46,13 @@ export default async function UnsortedPage() {
             <Settings className="h-4 w-4 mt-2" />
             <div className="flex flex-row justify-between pt-2">
               <div className="flex flex-col">
-                <AlertTitle>LLM provider API Key is required for analyzing files</AlertTitle>
+                <AlertTitle>É necessária uma chave de API de IA para analisar ficheiros</AlertTitle>
                 <AlertDescription>
-                  Please set your LLM provider API key in the settings to use the analyze form.
+                  Por favor defina a sua chave de API do fornecedor de IA nas definições para usar o formulário de análise.
                 </AlertDescription>
               </div>
               <Link href="/settings/llm">
-                <Button>Go to Settings</Button>
+                <Button>Ir para Definições</Button>
               </Link>
             </div>
           </Alert>
@@ -86,20 +86,20 @@ export default async function UnsortedPage() {
         {files.length == 0 && (
           <div className="flex flex-col items-center justify-center gap-2 h-full min-h-[600px]">
             <PartyPopper className="w-12 h-12 text-muted-foreground" />
-            <p className="pt-4 text-muted-foreground">Everything is clear! Congrats!</p>
+            <p className="pt-4 text-muted-foreground">Tudo limpo! Parabéns!</p>
             <p className="flex flex-row gap-2 text-muted-foreground">
-              <span>Drag and drop new files here to analyze</span>
+              <span>Arraste e largue novos ficheiros aqui para analisar</span>
               <Upload />
             </p>
 
             <div className="flex flex-row gap-5 mt-8">
               <UploadButton>
-                <Upload /> Upload New File
+                <Upload /> Carregar Ficheiro
               </UploadButton>
               <Button variant="outline" asChild>
                 <Link href="/transactions">
                   <FileText />
-                  Go to Transactions
+                  Ir para Transações
                 </Link>
               </Button>
             </div>

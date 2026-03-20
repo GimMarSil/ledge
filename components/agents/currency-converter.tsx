@@ -11,7 +11,6 @@ async function getCurrencyRate(currencyCodeFrom: string, currencyCodeTo: string,
 
   if (!response.ok) {
     const errorData = await response.json()
-    console.log("Currency API error:", errorData.error)
     throw new Error(errorData.error || "Failed to fetch currency rate")
   }
 
@@ -48,7 +47,6 @@ export const CurrencyConverterTool = ({
       setExchangeRate(rate)
       setConvertedTotal(Math.round(originalTotal * rate * 100) / 100)
     } catch (error) {
-      console.error("Error fetching currency rates:", error)
       setExchangeRate(0)
       setConvertedTotal(0)
       setError(error instanceof Error ? error.message : "Failed to fetch currency rate")

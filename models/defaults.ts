@@ -1,58 +1,71 @@
 import { prisma } from "@/lib/db"
 
-export const DEFAULT_PROMPT_ANALYSE_NEW_FILE = `You are an accountant and invoice analysis assistant. Extract following information from the given invoice: 
+export const DEFAULT_PROMPT_ANALYSE_NEW_FILE = `És um assistente de contabilidade e análise de faturas portuguesas. Extrai a seguinte informação da fatura fornecida:
 
 {fields}
 
-Also try to extract "items": all separate products or items from the invoice
+Tenta também extrair "items": todos os produtos ou itens separados da fatura. Para CADA item, extrai obrigatoriamente: name, description, total (valor com IVA), currencyCode, vat_rate (taxa de IVA em %), vat_amount (valor do IVA do item).
 
-Where categories are:
+As categorias são:
 
 {categories}
 
-And projects are:
+E os projetos são:
 
 {projects}
 
-IMPORTANT RULES:
-- Do not include any other text in your response!
-- If you can't find something leave it blank, NEVER make up information
-- Return only one object`
+REGRAS DE IVA PORTUGUÊS:
+- Em Portugal existem 3 taxas de IVA: 6% (reduzida), 13% (intermédia) e 23% (normal)
+- Regiões autónomas: Açores (4%, 9%, 18%) e Madeira (5%, 12%, 22%)
+- ATENÇÃO: Uma fatura pode ter itens com taxas de IVA DIFERENTES (taxas mistas)
+- Para cada item, identifica a taxa de IVA correta individualmente
+- O campo "vat_breakdown" deve conter o desdobramento do IVA por taxa, como array JSON: [{"rate": 23, "base": 100.00, "vat": 23.00}, {"rate": 6, "base": 50.00, "vat": 3.00}]
+- O campo "subtotal" é a base tributável total (soma de todas as bases, valor sem IVA)
+- O campo "vat" é o valor total de IVA (soma de todos os montantes de IVA)
+- O campo "total" é o valor total COM IVA
+
+REGRAS IMPORTANTES:
+- Não incluas qualquer outro texto na tua resposta!
+- Se não encontrares algo, deixa em branco, NUNCA inventes informação
+- Devolve apenas um objeto
+- Extrai o NIF/NIPC (número de identificação fiscal) do fornecedor se disponível
+- Se a fatura tiver tabela de resumo de IVA, usa esses valores para o vat_breakdown
+- Verifica que: subtotal + vat = total (tolerância de 0.01€ por arredondamentos)`
 
 export const DEFAULT_SETTINGS = [
   {
     code: "default_currency",
-    name: "Default Currency",
-    description: "Don't change this setting if you already have multi-currency transactions. I won't recalculate them.",
+    name: "Moeda Predefinida",
+    description: "Não altere esta definição se já tiver transações multi-moeda. Não serão recalculadas.",
     value: "EUR",
   },
   {
     code: "default_category",
-    name: "Default Category",
+    name: "Categoria Predefinida",
     description: "",
-    value: "other",
+    value: "outros",
   },
   {
     code: "default_project",
-    name: "Default Project",
+    name: "Projeto Predefinido",
     description: "",
-    value: "personal",
+    value: "pessoal",
   },
   {
     code: "default_type",
-    name: "Default Type",
+    name: "Tipo Predefinido",
     description: "",
     value: "expense",
   },
   {
     code: "prompt_analyse_new_file",
-    name: "Prompt for Analyze Transaction",
-    description: "Allowed variables: {fields}, {categories}, {categories.code}, {projects}, {projects.code}",
+    name: "Prompt para Análise de Transação",
+    description: "Variáveis permitidas: {fields}, {categories}, {categories.code}, {projects}, {projects.code}",
     value: DEFAULT_PROMPT_ANALYSE_NEW_FILE,
   },
   {
     code: "is_welcome_message_hidden",
-    name: "Do not show welcome message on dashboard",
+    name: "Não mostrar mensagem de boas-vindas no painel",
     description: "",
     value: "false",
   },
@@ -60,48 +73,48 @@ export const DEFAULT_SETTINGS = [
 
 export const DEFAULT_CATEGORIES = [
   {
-    code: "ads",
-    name: "Advertisement",
+    code: "publicidade",
+    name: "Publicidade",
     color: "#882727",
-    llm_prompt: "ads, promos, online ads, etc",
+    llm_prompt: "publicidade, anúncios, promoções, marketing",
   },
   {
-    code: "swag",
-    name: "Swag and Goods",
+    code: "mercadorias",
+    name: "Mercadorias e Brindes",
     color: "#882727",
-    llm_prompt: "swag, stickers, goods, etc",
+    llm_prompt: "brindes, merchandising, artigos promocionais",
   },
-  { code: "donations", name: "Gifts and Donations", color: "#1e6359", llm_prompt: "donations, gifts, charity" },
-  { code: "tools", name: "Equipment and Tools", color: "#c69713", llm_prompt: "equipment, tools" },
-  { code: "events", name: "Events and Conferences", color: "#ff8b32", llm_prompt: "events, conferences" },
-  { code: "food", name: "Food and Drinks", color: "#d40e70", llm_prompt: "food, drinks, business meals" },
-  { code: "insurance", name: "Insurance", color: "#050942", llm_prompt: "insurance, health, life" },
-  { code: "invoice", name: "Invoice", color: "#064e85", llm_prompt: "custom invoice, bill" },
-  { code: "communication", name: "Mobile and Internet", color: "#0e7d86", llm_prompt: "mobile, internet, phone" },
-  { code: "office", name: "Office Supplies", color: "#59b0b9", llm_prompt: "office, supplies, stationery" },
-  { code: "online", name: "Online Services", color: "#8753fb", llm_prompt: "online services, saas, subscriptions" },
-  { code: "rental", name: "Rental", color: "#050942", llm_prompt: "rental, lease" },
+  { code: "donativos", name: "Ofertas e Donativos", color: "#1e6359", llm_prompt: "donativos, ofertas, caridade" },
+  { code: "equipamento", name: "Equipamento e Ferramentas", color: "#c69713", llm_prompt: "equipamento, ferramentas, máquinas" },
+  { code: "eventos", name: "Eventos e Conferências", color: "#ff8b32", llm_prompt: "eventos, conferências, feiras" },
+  { code: "alimentacao", name: "Alimentação e Bebidas", color: "#d40e70", llm_prompt: "alimentação, bebidas, refeições de negócios" },
+  { code: "seguros", name: "Seguros", color: "#050942", llm_prompt: "seguros, saúde, vida" },
+  { code: "fatura", name: "Fatura", color: "#064e85", llm_prompt: "fatura, conta, recibo" },
+  { code: "comunicacoes", name: "Comunicações", color: "#0e7d86", llm_prompt: "telemóvel, internet, telefone, comunicações" },
+  { code: "escritorio", name: "Material de Escritório", color: "#59b0b9", llm_prompt: "escritório, material, papelaria" },
+  { code: "servicos_online", name: "Serviços Online", color: "#8753fb", llm_prompt: "serviços online, SaaS, subscrições" },
+  { code: "rendas", name: "Rendas e Alugueres", color: "#050942", llm_prompt: "renda, aluguer, arrendamento" },
   {
-    code: "education",
-    name: "Education",
+    code: "formacao",
+    name: "Formação e Educação",
     color: "#ee5d6c",
-    llm_prompt: "education, professional development, trainings",
+    llm_prompt: "formação, educação, desenvolvimento profissional",
   },
-  { code: "salary", name: "Salary", color: "#ce4993", llm_prompt: "salary, wages, etc" },
-  { code: "fees", name: "Fees", color: "#6a0d83", llm_prompt: "fees, charges, penalties, etc" },
-  { code: "travel", name: "Travel Expenses", color: "#fb9062", llm_prompt: "travel, accommodation, etc" },
-  { code: "utility_bills", name: "Utility Bills", color: "#af7e2e", llm_prompt: "bills, electricity, water, etc" },
+  { code: "salarios", name: "Salários", color: "#ce4993", llm_prompt: "salários, vencimentos, ordenados" },
+  { code: "taxas", name: "Taxas e Impostos", color: "#6a0d83", llm_prompt: "taxas, impostos, multas, penalizações" },
+  { code: "viagens", name: "Despesas de Viagem", color: "#fb9062", llm_prompt: "viagens, alojamento, deslocações" },
+  { code: "servicos_publicos", name: "Serviços Públicos", color: "#af7e2e", llm_prompt: "eletricidade, água, gás, contas" },
   {
-    code: "transport",
-    name: "Transport",
+    code: "transportes",
+    name: "Transportes",
     color: "#800000",
-    llm_prompt: "transportation costs, fuel, car rental, vignettes, etc",
+    llm_prompt: "transportes, combustível, aluguer de veículos, portagens",
   },
-  { code: "software", name: "Software", color: "#2b5a1d", llm_prompt: "software, licenses" },
-  { code: "other", name: "Other", color: "#121216", llm_prompt: "other, miscellaneous," },
+  { code: "software", name: "Software", color: "#2b5a1d", llm_prompt: "software, licenças" },
+  { code: "outros", name: "Outros", color: "#121216", llm_prompt: "outros, diversos" },
 ]
 
-export const DEFAULT_PROJECTS = [{ code: "personal", name: "Personal", llm_prompt: "personal", color: "#1e202b" }]
+export const DEFAULT_PROJECTS = [{ code: "pessoal", name: "Pessoal", llm_prompt: "pessoal", color: "#1e202b" }]
 
 export const DEFAULT_CURRENCIES = [
   { code: "USD", name: "$" },
@@ -286,9 +299,9 @@ export const DEFAULT_CURRENCIES = [
 export const DEFAULT_FIELDS = [
   {
     code: "name",
-    name: "Name",
+    name: "Nome",
     type: "string",
-    llm_prompt: "human readable name, summarize what is bought or paid for in the invoice",
+    llm_prompt: "nome legível, resumo do que foi comprado ou pago na fatura",
     isVisibleInList: true,
     isVisibleInAnalysis: true,
     isRequired: true,
@@ -296,9 +309,9 @@ export const DEFAULT_FIELDS = [
   },
   {
     code: "description",
-    name: "Description",
+    name: "Descrição",
     type: "string",
-    llm_prompt: "description of the transaction",
+    llm_prompt: "descrição da transação",
     isVisibleInList: false,
     isVisibleInAnalysis: false,
     isRequired: false,
@@ -306,9 +319,9 @@ export const DEFAULT_FIELDS = [
   },
   {
     code: "merchant",
-    name: "Merchant",
+    name: "Fornecedor",
     type: "string",
-    llm_prompt: "merchant name, use the original spelling and language",
+    llm_prompt: "nome do fornecedor/comerciante, usar a ortografia e língua originais",
     isVisibleInList: true,
     isVisibleInAnalysis: true,
     isRequired: false,
@@ -316,9 +329,9 @@ export const DEFAULT_FIELDS = [
   },
   {
     code: "issuedAt",
-    name: "Issued At",
+    name: "Data de Emissão",
     type: "string",
-    llm_prompt: "issued at date (YYYY-MM-DD format)",
+    llm_prompt: "data de emissão (formato YYYY-MM-DD)",
     isVisibleInList: true,
     isVisibleInAnalysis: true,
     isRequired: true,
@@ -326,9 +339,9 @@ export const DEFAULT_FIELDS = [
   },
   {
     code: "projectCode",
-    name: "Project",
+    name: "Projeto",
     type: "string",
-    llm_prompt: "project code, one of: {projects.code}",
+    llm_prompt: "código do projeto, um de: {projects.code}",
     isVisibleInList: true,
     isVisibleInAnalysis: true,
     isRequired: false,
@@ -336,9 +349,9 @@ export const DEFAULT_FIELDS = [
   },
   {
     code: "categoryCode",
-    name: "Category",
+    name: "Categoria",
     type: "string",
-    llm_prompt: "category code, one of: {categories.code}",
+    llm_prompt: "código da categoria, um de: {categories.code}",
     isVisibleInList: true,
     isVisibleInAnalysis: true,
     isRequired: false,
@@ -346,7 +359,7 @@ export const DEFAULT_FIELDS = [
   },
   {
     code: "files",
-    name: "Files",
+    name: "Ficheiros",
     type: "string",
     llm_prompt: "",
     isVisibleInList: true,
@@ -358,7 +371,7 @@ export const DEFAULT_FIELDS = [
     code: "total",
     name: "Total",
     type: "number",
-    llm_prompt: "total total of the transaction",
+    llm_prompt: "valor total da transação",
     isVisibleInList: true,
     isVisibleInAnalysis: true,
     isRequired: true,
@@ -366,9 +379,9 @@ export const DEFAULT_FIELDS = [
   },
   {
     code: "currencyCode",
-    name: "Currency",
+    name: "Moeda",
     type: "string",
-    llm_prompt: "currency code, ISO 4217 three letter code like USD, EUR, including crypto codes like BTC, ETH, etc",
+    llm_prompt: "código da moeda, código ISO 4217 de três letras como USD, EUR, incluindo códigos crypto como BTC, ETH, etc",
     isVisibleInList: false,
     isVisibleInAnalysis: true,
     isRequired: false,
@@ -376,7 +389,7 @@ export const DEFAULT_FIELDS = [
   },
   {
     code: "convertedTotal",
-    name: "Converted Total",
+    name: "Total Convertido",
     type: "number",
     llm_prompt: "",
     isVisibleInList: false,
@@ -386,7 +399,7 @@ export const DEFAULT_FIELDS = [
   },
   {
     code: "convertedCurrencyCode",
-    name: "Converted Currency Code",
+    name: "Moeda de Conversão",
     type: "string",
     llm_prompt: "",
     isVisibleInList: false,
@@ -396,7 +409,7 @@ export const DEFAULT_FIELDS = [
   },
   {
     code: "type",
-    name: "Type",
+    name: "Tipo",
     type: "string",
     llm_prompt: "",
     isVisibleInList: false,
@@ -406,7 +419,7 @@ export const DEFAULT_FIELDS = [
   },
   {
     code: "note",
-    name: "Note",
+    name: "Nota",
     type: "string",
     llm_prompt: "",
     isVisibleInList: false,
@@ -415,30 +428,60 @@ export const DEFAULT_FIELDS = [
     isExtra: false,
   },
   {
-    code: "vat_rate",
-    name: "VAT Rate",
-    type: "number",
-    llm_prompt: "VAT rate in percentage 0-100",
+    code: "nif",
+    name: "NIF do Fornecedor",
+    type: "string",
+    llm_prompt: "NIF ou NIPC (número de identificação fiscal) do fornecedor, formato português com 9 dígitos",
     isVisibleInList: false,
-    isVisibleInAnalysis: false,
+    isVisibleInAnalysis: true,
+    isRequired: false,
+    isExtra: true,
+  },
+  {
+    code: "subtotal",
+    name: "Subtotal (Base Tributável)",
+    type: "number",
+    llm_prompt: "base tributável total (valor sem IVA, soma de todas as bases de incidência)",
+    isVisibleInList: false,
+    isVisibleInAnalysis: true,
     isRequired: false,
     isExtra: true,
   },
   {
     code: "vat",
-    name: "VAT Amount",
+    name: "Total IVA",
     type: "number",
-    llm_prompt: "total VAT in currency of the invoice",
+    llm_prompt: "valor total do IVA na moeda da fatura (soma de todos os montantes de IVA de todas as taxas)",
+    isVisibleInList: false,
+    isVisibleInAnalysis: true,
+    isRequired: false,
+    isExtra: true,
+  },
+  {
+    code: "vat_rate",
+    name: "Taxa de IVA",
+    type: "number",
+    llm_prompt: "taxa de IVA predominante em percentagem. Se houver taxas mistas (ex: 6% e 23% na mesma fatura), indica a taxa mais alta. Em Portugal Continental: 6%, 13% ou 23%. Açores: 4%, 9%, 18%. Madeira: 5%, 12%, 22%",
     isVisibleInList: false,
     isVisibleInAnalysis: false,
     isRequired: false,
     isExtra: true,
   },
   {
-    code: "text",
-    name: "Extracted Text",
+    code: "vat_breakdown",
+    name: "Desdobramento IVA",
     type: "string",
-    llm_prompt: "extract all recognised text from the invoice",
+    llm_prompt: 'desdobramento do IVA por taxa como array JSON. Exemplo: [{"rate":23,"base":100.00,"vat":23.00},{"rate":6,"base":50.00,"vat":3.00}]. Cada objeto tem: rate (taxa %), base (base tributável), vat (valor IVA). Se a fatura tiver resumo de IVA, usa esses valores. Se não, calcula a partir dos itens',
+    isVisibleInList: false,
+    isVisibleInAnalysis: true,
+    isRequired: false,
+    isExtra: true,
+  },
+  {
+    code: "text",
+    name: "Texto Extraído",
+    type: "string",
+    llm_prompt: "extrair todo o texto reconhecido da fatura",
     isVisibleInList: false,
     isVisibleInAnalysis: false,
     isRequired: false,

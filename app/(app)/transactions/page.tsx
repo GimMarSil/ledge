@@ -15,8 +15,8 @@ import { Metadata } from "next"
 import { redirect } from "next/navigation"
 
 export const metadata: Metadata = {
-  title: "Transactions",
-  description: "Manage your transactions",
+  title: "Transações",
+  description: "Gerir as suas transações",
 }
 
 const TRANSACTIONS_PER_PAGE = 500
@@ -42,15 +42,15 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
     <>
       <header className="flex flex-wrap items-center justify-between gap-2 mb-8">
         <h2 className="flex flex-row gap-3 md:gap-5">
-          <span className="text-3xl font-bold tracking-tight">Transactions</span>
+          <span className="text-3xl font-bold tracking-tight">Transações</span>
           <span className="text-3xl tracking-tight opacity-20">{total}</span>
         </h2>
         <div className="flex gap-2">
           <ExportTransactionsDialog fields={fields} categories={categories} projects={projects} total={total}>
-            <Download /> <span className="hidden md:block">Export</span>
+            <Download /> <span className="hidden md:block">Exportar</span>
           </ExportTransactionsDialog>
           <NewTransactionDialog>
-            <Plus /> <span className="hidden md:block">Add Transaction</span>
+            <Plus /> <span className="hidden md:block">Nova Transação</span>
           </NewTransactionDialog>
         </div>
       </header>
@@ -65,16 +65,16 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
         {transactions.length === 0 && (
           <div className="flex flex-col items-center justify-center gap-2 h-full min-h-[400px]">
             <p className="text-muted-foreground">
-              You don&apos;t seem to have any transactions yet. Let&apos;s start and create the first one!
+              Ainda não tem transações. Vamos começar e criar a primeira!
             </p>
             <div className="flex flex-row gap-5 mt-8">
               <UploadButton>
-                <Upload /> Analyze New Invoice
+                <Upload /> Analisar Nova Fatura
               </UploadButton>
               <NewTransactionDialog>
                 <Button variant="outline">
                   <Plus />
-                  Add Manually
+                  Adicionar Manualmente
                 </Button>
               </NewTransactionDialog>
             </div>

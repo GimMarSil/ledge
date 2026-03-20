@@ -45,10 +45,10 @@ export default async function CloudPaymentSuccessPage({
       <Card className="w-full max-w-xl mx-auto p-8 flex flex-col items-center justify-center gap-4">
         <Cake className="w-36 h-36" />
         <CardTitle className="text-3xl font-bold ">
-          <ColoredText>Payment Successful</ColoredText>
+          <ColoredText>Pagamento Concluído</ColoredText>
         </CardTitle>
         <CardDescription className="text-center text-xl">
-          Welcome to TaxHacker, {user.name}. You can login to your account now
+          Bem-vindo ao Ledge, {user.name}. Pode iniciar sessão agora
         </CardDescription>
         <CardContent className="w-full">
           <LoginForm defaultEmail={user.email} />
@@ -59,11 +59,11 @@ export default async function CloudPaymentSuccessPage({
     return (
       <Card className="w-full max-w-xl mx-auto p-8 flex flex-col items-center justify-center gap-4">
         <Ghost className="w-36 h-36" />
-        <CardTitle className="text-3xl font-bold ">Payment Failed</CardTitle>
-        <CardDescription className="text-center text-xl">Please try again...</CardDescription>
+        <CardTitle className="text-3xl font-bold ">Pagamento Falhou</CardTitle>
+        <CardDescription className="text-center text-xl">Por favor tente novamente...</CardDescription>
         <CardFooter>
           <Button asChild>
-            <Link href="/">Go Home</Link>
+            <Link href="/">Voltar ao Início</Link>
           </Button>
         </CardFooter>
       </Card>

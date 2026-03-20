@@ -48,7 +48,6 @@ export async function pdfToImages(user: User, origFilePath: string): Promise<{ c
       pages: paths,
     }
   } catch (error) {
-    console.error("Error converting PDF to image:", error)
     throw error
   }
 }

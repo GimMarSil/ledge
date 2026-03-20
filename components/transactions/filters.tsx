@@ -33,7 +33,7 @@ export function TransactionSearchAndFilters({
       <div className="flex flex-wrap gap-4">
         <div className="flex-1 min-w-[200px]">
           <Input
-            placeholder="Search transactions..."
+            placeholder="Pesquisar transações..."
             defaultValue={filters.search}
             onKeyDown={(e) => {
               if (e.key === "Enter") {
@@ -46,10 +46,10 @@ export function TransactionSearchAndFilters({
 
         <Select value={filters.categoryCode} onValueChange={(value) => handleFilterChange("categoryCode", value)}>
           <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="All categories" />
+            <SelectValue placeholder="Todas as categorias" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="-">All categories</SelectItem>
+            <SelectItem value="-">Todas as categorias</SelectItem>
             {categories.map((category) => (
               <SelectItem key={category.code} value={category.code}>
                 <div className="flex items-center gap-2">
@@ -64,10 +64,10 @@ export function TransactionSearchAndFilters({
         {projects.length > 1 && (
           <Select value={filters.projectCode} onValueChange={(value) => handleFilterChange("projectCode", value)}>
             <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="All projects" />
+              <SelectValue placeholder="Todos os projetos" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="-">All projects</SelectItem>
+              <SelectItem value="-">Todos os projetos</SelectItem>
               {projects.map((project) => (
                 <SelectItem key={project.code} value={project.code}>
                   <div className="flex items-center gap-2">
@@ -99,7 +99,7 @@ export function TransactionSearchAndFilters({
               setFilters({})
             }}
             className="text-muted-foreground hover:text-foreground"
-            title="Clear all filters"
+            title="Limpar todos os filtros"
           >
             <X className="h-4 w-4" />
           </Button>

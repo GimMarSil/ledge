@@ -26,12 +26,12 @@ export function LoginForm({ defaultEmail }: { defaultEmail?: string }) {
         type: "sign-in",
       })
       if (result.error) {
-        setError(result.error.message || "Failed to send the code")
+        setError(result.error.message || "Falha ao enviar o código")
         return
       }
       setIsOtpSent(true)
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to send the code")
+      setError(err instanceof Error ? err.message : "Falha ao enviar o código")
     } finally {
       setIsLoading(false)
     }
@@ -48,13 +48,13 @@ export function LoginForm({ defaultEmail }: { defaultEmail?: string }) {
         otp,
       })
       if (result.error) {
-        setError("The code is invalid or expired")
+        setError("O código é inválido ou expirou")
         return
       }
 
       router.push("/dashboard")
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Failed to verify the code")
+      setError(err instanceof Error ? err.message : "Falha ao verificar o código")
     } finally {
       setIsLoading(false)
     }
@@ -73,7 +73,7 @@ export function LoginForm({ defaultEmail }: { defaultEmail?: string }) {
 
       {isOtpSent && (
         <FormInput
-          title="Check your email for the verification code"
+          title="Verifique o seu email para o código de verificação"
           type="text"
           value={otp}
           onChange={(e) => setOtp(e.target.value)}
@@ -84,7 +84,7 @@ export function LoginForm({ defaultEmail }: { defaultEmail?: string }) {
       )}
 
       <Button type="submit" disabled={isLoading}>
-        {isLoading ? "Loading..." : isOtpSent ? "Verify Code" : "Enter"}
+        {isLoading ? "A carregar..." : isOtpSent ? "Verificar Código" : "Entrar"}
       </Button>
 
       {error && <FormError className="text-center">{error}</FormError>}

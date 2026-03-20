@@ -44,7 +44,6 @@ export async function createTransactionAction(
     revalidatePath("/transactions")
     return { success: true, data: transaction }
   } catch (error) {
-    console.error("Failed to create transaction:", error)
     return { success: false, error: "Failed to create transaction" }
   }
 }
@@ -67,7 +66,6 @@ export async function saveTransactionAction(
     revalidatePath("/transactions")
     return { success: true, data: transaction }
   } catch (error) {
-    console.error("Failed to update transaction:", error)
     return { success: false, error: "Failed to save transaction" }
   }
 }
@@ -87,7 +85,6 @@ export async function deleteTransactionAction(
 
     return { success: true, data: transaction }
   } catch (error) {
-    console.error("Failed to delete transaction:", error)
     return { success: false, error: "Failed to delete transaction" }
   }
 }
@@ -197,7 +194,6 @@ export async function uploadTransactionFilesAction(formData: FormData): Promise<
     revalidatePath(`/transactions/${transactionId}`)
     return { success: true }
   } catch (error) {
-    console.error("Upload error:", error)
     return { success: false, error: `File upload failed: ${error}` }
   }
 }
@@ -209,7 +205,6 @@ export async function bulkDeleteTransactionsAction(transactionIds: string[]) {
     revalidatePath("/transactions")
     return { success: true }
   } catch (error) {
-    console.error("Failed to delete transactions:", error)
     return { success: false, error: "Failed to delete transactions" }
   }
 }
@@ -222,7 +217,6 @@ export async function updateFieldVisibilityAction(fieldCode: string, isVisible: 
     })
     return { success: true }
   } catch (error) {
-    console.error("Failed to update field visibility:", error)
     return { success: false, error: "Failed to update field visibility" }
   }
 }

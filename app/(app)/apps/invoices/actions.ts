@@ -117,7 +117,6 @@ export async function saveInvoiceAsTransactionAction(
 
     return { success: true, data: transaction }
   } catch (error) {
-    console.error("Failed to save invoice as transaction:", error)
     return {
       success: false,
       error: `Failed to save invoice as transaction: ${error}`,

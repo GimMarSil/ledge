@@ -76,7 +76,6 @@ export const deleteFile = async (id: string, userId: string) => {
   try {
     await unlink(path.resolve(path.normalize(file.path)))
   } catch (error) {
-    console.error("Error deleting file:", error)
   }
 
   return await prisma.file.delete({

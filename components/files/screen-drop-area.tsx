@@ -91,7 +91,6 @@ export default function ScreenDropArea({ children }: { children: React.ReactNode
             setUploadError(result.error ? result.error : "Something went wrong...")
           }
         } catch (error) {
-          console.error("Upload error:", error)
           setUploadError(error instanceof Error ? error.message : "Something went wrong...")
         } finally {
           setIsUploading(false)

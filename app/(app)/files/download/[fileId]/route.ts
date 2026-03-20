@@ -39,7 +39,6 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
         },
     })
   } catch (error) {
-    console.error("Error serving file:", error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }

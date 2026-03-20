@@ -31,7 +31,6 @@ export async function subscribeToNewsletterAction(email: string) {
 
     return { success: true }
   } catch (error) {
-    console.error("Newsletter subscription error:", error)
     return { error: "Failed to subscribe. Please try again later." }
   }
 }

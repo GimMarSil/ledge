@@ -41,10 +41,6 @@ export async function GET(request: Request) {
     // Process transactions in chunks to avoid memory issues
     for (let i = 0; i < transactions.length; i += TRANSACTIONS_CHUNK_SIZE) {
       const chunk = transactions.slice(i, i + TRANSACTIONS_CHUNK_SIZE)
-      console.log(
-        `Processing transactions ${i + 1}-${Math.min(i + TRANSACTIONS_CHUNK_SIZE, transactions.length)} of ${transactions.length}`
-      )
-
       for (const transaction of chunk) {
         const row: Record<string, unknown> = {}
         for (const field of existingFields) {
@@ -111,14 +107,8 @@ export async function GET(request: Request) {
       await updateProgress(user.id, progressId, { total: totalFilesToProcess })
     }
 
-    console.log(`Starting to process ${totalFilesToProcess} files in total`)
-
     for (let i = 0; i < transactions.length; i += FILES_CHUNK_SIZE) {
       const chunk = transactions.slice(i, i + FILES_CHUNK_SIZE)
-      console.log(
-        `Processing files for transactions ${i + 1}-${Math.min(i + FILES_CHUNK_SIZE, transactions.length)} of ${transactions.length}`
-      )
-
       for (const transaction of chunk) {
         const transactionFiles = await getFilesByTransactionId(transaction.id, user.id)
 
@@ -134,9 +124,7 @@ export async function GET(request: Request) {
         for (const file of transactionFiles) {
           const fullFilePath = fullPathForFile(user, file)
           if (await fileExists(fullFilePath)) {
-            console.log(
-              `Processing file ${++totalFilesProcessed}/${totalFilesToProcess}: ${file.filename} for transaction ${transaction.id}`
-            )
+            totalFilesProcessed++
             const fileData = await fs.readFile(fullFilePath)
             const fileExtension = path.extname(fullFilePath)
             transactionFolder.file(
@@ -152,8 +140,6 @@ export async function GET(request: Request) {
               await updateProgress(user.id, progressId, { current: totalFilesProcessed })
               lastProgressUpdate = now
             }
-          } else {
-            console.log(`Skipping missing file: ${file.filename} for transaction ${transaction.id}`)
           }
         }
       }
@@ -163,8 +149,6 @@ export async function GET(request: Request) {
     if (progressId) {
       await updateProgress(user.id, progressId, { current: totalFilesToProcess })
     }
-
-    console.log(`Finished processing all ${totalFilesProcessed} files`)
 
     // Generate zip with progress tracking
     const zipContent = await zip.generateAsync({
@@ -182,7 +166,6 @@ export async function GET(request: Request) {
       },
     })
   } catch (error) {
-    console.error("Error exporting transactions:", error)
     return new NextResponse("Internal Server Error", { status: 500 })
   }
 }

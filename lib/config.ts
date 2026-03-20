@@ -16,7 +16,7 @@ const envSchema = z.object({
     .default("please-set-your-key-here"),
   DISABLE_SIGNUP: z.enum(["true", "false"]).default("false"),
   RESEND_API_KEY: z.string().default("please-set-your-resend-api-key-here"),
-  RESEND_FROM_EMAIL: z.string().default("TaxHacker <user@localhost>"),
+  RESEND_FROM_EMAIL: z.string().default("Ledge <user@localhost>"),
   RESEND_AUDIENCE_ID: z.string().default(""),
   STRIPE_SECRET_KEY: z.string().default(""),
   STRIPE_WEBHOOK_SECRET: z.string().default(""),
@@ -26,11 +26,11 @@ const env = envSchema.parse(process.env)
 
 const config = {
   app: {
-    title: "TaxHacker",
-    description: "Your personal AI accountant",
+    title: "Ledge",
+    description: "Gestão inteligente de despesas",
     version: process.env.npm_package_version || "0.0.1",
     baseURL: env.BASE_URL || `http://localhost:${env.PORT || "7331"}`,
-    supportEmail: "me@vas3k.com",
+    supportEmail: "portal.rh@ramosferreira.com",
   },
   upload: {
     acceptedMimeTypes: "image/*,.pdf,.doc,.docx,.xls,.xlsx",

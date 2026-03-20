@@ -24,11 +24,11 @@ export function AnalyzeAllButton() {
     <div className="flex flex-row flex-wrap gap-2 justify-end">
       <Button variant="outline" className="flex items-center gap-2" onClick={handleSaveAll}>
         <Save className="h-4 w-4" />
-        Save all
+        Guardar tudo
       </Button>
       <Button className="flex items-center gap-2" onClick={handleAnalyzeAll}>
         <Swords className="h-4 w-4" />
-        Analyze all
+        Analisar tudo
       </Button>
     </div>
   )

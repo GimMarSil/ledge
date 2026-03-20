@@ -51,33 +51,33 @@ export default function TransactionCreateForm({
 
   return (
     <form action={createAction} className="space-y-4">
-      <FormInput title="Name" name="name" defaultValue={formData.name} />
+      <FormInput title="Nome" name="name" defaultValue={formData.name} />
 
-      <FormInput title="Merchant" name="merchant" defaultValue={formData.merchant} />
+      <FormInput title="Fornecedor" name="merchant" defaultValue={formData.merchant} />
 
-      <FormInput title="Description" name="description" defaultValue={formData.description} />
+      <FormInput title="Descrição" name="description" defaultValue={formData.description} />
 
       <div className="flex flex-row gap-4">
         <FormInput title="Total" type="number" step="0.01" name="total" defaultValue={formData.total.toFixed(2)} />
 
         <FormSelectCurrency
-          title="Currency"
+          title="Moeda"
           name="currencyCode"
           currencies={currencies}
-          placeholder="Select Currency"
+          placeholder="Selecionar Moeda"
           value={formData.currencyCode}
           onValueChange={(value) => {
             setFormData({ ...formData, currencyCode: value })
           }}
         />
 
-        <FormSelectType title="Type" name="type" defaultValue={formData.type} />
+        <FormSelectType title="Tipo" name="type" defaultValue={formData.type} />
       </div>
 
       {formData.currencyCode !== settings.default_currency ? (
         <div className="flex flex-row gap-4">
           <FormInput
-            title={`Converted to ${settings.default_currency}`}
+            title={`Convertido para ${settings.default_currency}`}
             type="number"
             step="0.01"
             name="convertedTotal"
@@ -89,28 +89,28 @@ export default function TransactionCreateForm({
       )}
 
       <div className="flex flex-row flex-grow gap-4">
-        <FormInput title="Issued At" type="date" name="issuedAt" defaultValue={formData.issuedAt} />
+        <FormInput title="Data de Emissão" type="date" name="issuedAt" defaultValue={formData.issuedAt} />
       </div>
 
       <div className="flex flex-row gap-4">
         <FormSelectCategory
-          title="Category"
+          title="Categoria"
           categories={categories}
           name="categoryCode"
           defaultValue={formData.categoryCode}
-          placeholder="Select Category"
+          placeholder="Selecionar Categoria"
         />
 
         <FormSelectProject
-          title="Project"
+          title="Projeto"
           projects={projects}
           name="projectCode"
           defaultValue={formData.projectCode}
-          placeholder="Select Project"
+          placeholder="Selecionar Projeto"
         />
       </div>
 
-      <FormTextarea title="Note" name="note" defaultValue={formData.note} />
+      <FormTextarea title="Nota" name="note" defaultValue={formData.note} />
 
       <div className="flex justify-between space-x-4 pt-6">
         <Button type="button" variant="outline" className="aspect-square">
@@ -123,10 +123,10 @@ export default function TransactionCreateForm({
           {isCreating ? (
             <>
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-              Creating...
+              A criar...
             </>
           ) : (
-            "Create and Add Files"
+            "Criar e Adicionar Ficheiros"
           )}
         </Button>
       </div>

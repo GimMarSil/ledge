@@ -76,7 +76,7 @@ export default function LLMSettingsForm({
       <form action={saveAction} className="space-y-4">
 
         <div className="space-y-2">
-          <label className="text-sm font-medium">LLM providers</label>
+          <label className="text-sm font-medium">Fornecedores de IA</label>
           <DndProviderBlocks
             providerOrder={providerOrder}
             setProviderOrder={setProviderOrder}
@@ -84,13 +84,13 @@ export default function LLMSettingsForm({
             handleProviderValueChange={handleProviderValueChange}
           />
           <small className="text-muted-foreground">
-            Drag provider blocks to reorder. First is highest priority.
+            Arraste os blocos para reordenar. O primeiro tem maior prioridade.
           </small>
         </div>
         <input type="hidden" name="llm_providers" value={providerOrder.join(",")} />
 
         <FormTextarea
-          title="Prompt for File Analysis Form"
+          title="Prompt para Análise de Ficheiros"
           name="prompt_analyse_new_file"
           defaultValue={settings.prompt_analyse_new_file}
           className="h-96"
@@ -98,12 +98,12 @@ export default function LLMSettingsForm({
 
         <div className="flex flex-row items-center gap-4">
           <Button type="submit" disabled={pending}>
-            {pending ? "Saving..." : "Save Settings"}
+            {pending ? "A guardar..." : "Guardar Definições"}
           </Button>
           {saveState?.success && (
             <p className="text-green-500 flex flex-row items-center gap-2">
               <CircleCheckBig />
-              Saved!
+              Guardado!
             </p>
           )}
         </div>
@@ -114,7 +114,7 @@ export default function LLMSettingsForm({
       <Card className="flex flex-col gap-4 p-4 bg-accent mt-20">
         <CardTitle className="flex flex-row justify-between items-center gap-2">
           <span className="text-md font-medium">
-            Current JSON Schema for{" "}
+            Schema JSON atual para{" "}
             <a
               href="https://platform.openai.com/docs/guides/structured-outputs?api-mode=responses&lang=javascript"
               target="_blank"
@@ -127,7 +127,7 @@ export default function LLMSettingsForm({
             href="/settings/fields"
             className="text-xs underline inline-flex flex-row items-center gap-1 text-muted-foreground"
           >
-            <Edit className="w-4 h-4" /> Edit Fields
+            <Edit className="w-4 h-4" /> Editar Campos
           </Link>
         </CardTitle>
         <pre className="text-xs overflow-hidden text-ellipsis">
@@ -214,7 +214,7 @@ function SortableProviderBlock({ id, idx, providerKey, value, handleValueChange 
           value={value.apiKey}
           onChange={e => handleValueChange(provider.key, "apiKey", e.target.value)}
           className="flex-1 border rounded px-2 py-1"
-          placeholder="API key"
+          placeholder="Chave de API"
         />
         <input
           type="text"
@@ -222,12 +222,12 @@ function SortableProviderBlock({ id, idx, providerKey, value, handleValueChange 
           value={value.model}
           onChange={e => handleValueChange(provider.key, "model", e.target.value)}
           className="flex-1 border rounded px-2 py-1"
-          placeholder="Model name"
+          placeholder="Nome do modelo"
         />
       </div>
       {provider.apiDoc && (
         <small className="text-muted-foreground">
-          Get your API key from{" "}
+          Obtenha a sua chave de API em{" "}
           <a
             href={provider.apiDoc}
             target="_blank"

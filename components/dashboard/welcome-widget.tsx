@@ -14,11 +14,11 @@ export async function WelcomeWidget() {
 
   return (
     <Card className="flex flex-col lg:flex-row items-start gap-10 p-10 w-full">
-      <Image src="/logo/1024.png" alt="Logo" width={256} height={256} className="w-64 h-64" />
+      <Image src="/logo/logo.svg" alt="Ledge" width={256} height={256} className="w-64 h-64" />
       <div className="flex flex-col">
         <CardTitle className="flex items-center justify-between">
           <span className="text-2xl font-bold">
-            <ColoredText>Hey, I&apos;m TaxHacker 👋</ColoredText>
+            <ColoredText>Bem-vindo ao Ledge 👋</ColoredText>
           </span>
           <Button
             variant="outline"
@@ -34,55 +34,43 @@ export async function WelcomeWidget() {
         </CardTitle>
         <CardDescription className="mt-5">
           <p className="mb-3">
-            I&apos;m a little accountant app that helps you deal with endless receipts, checks and invoices with (you
-            guessed it) AI. Here&apos;s what I can do:
+            Sou uma aplicação de contabilidade que ajuda a lidar com recibos, faturas e despesas usando
+            Inteligência Artificial. Eis o que posso fazer:
           </p>
           <ul className="mb-5 list-disc pl-5 space-y-1">
             <li>
-              <strong>Upload me a photo or a PDF</strong> and I will recognize, categorize and save it as a transaction
-              for your tax advisor.
+              <strong>Carregue uma foto ou PDF</strong> e eu reconheço, categorizo e guardo como transação
+              para o seu contabilista.
             </li>
             <li>
-              I can <strong>automatically convert currencies</strong> and look up exchange rates for a given date.
+              Posso <strong>converter moedas automaticamente</strong> e consultar taxas de câmbio para uma data específica.
             </li>
             <li>
-              I even <strong>support crypto!</strong> Historical exchange rates for staking too.
+              Também <strong>suporto criptomoedas!</strong> Taxas de câmbio históricas incluídas.
             </li>
             <li>
-              All <strong>LLM prompts are configurable</strong>: for fields, categories and projects. You can go to
-              settings and change them however you want.
+              Todos os <strong>prompts de IA são configuráveis</strong>: para campos, categorias e projetos. Pode ir às
+              definições e alterá-los como quiser.
             </li>
             <li>
-              I save data in a <strong>local SQLite database</strong> and can export it to CSV and ZIP archives.
+              Guardo os dados numa <strong>base de dados PostgreSQL</strong> e posso exportar para CSV e arquivos ZIP.
             </li>
             <li>
-              You can even <strong>create your own new fields</strong> to be analyzed and they will be included in the
-              CSV export for your tax advisor.
+              Pode até <strong>criar campos personalizados</strong> para análise e serão incluídos na
+              exportação CSV para o seu contabilista.
             </li>
             <li>
-              I&apos;m still <strong>very young</strong> and can make mistakes. Use me at your own risk!
+              Extraio automaticamente o <strong>NIF do fornecedor</strong> e as taxas de IVA portuguesas (6%, 13%, 23%).
             </li>
           </ul>
           <p className="mb-3">
-            While I can save you a lot of time in categorizing transactions and generating reports, I still highly
-            recommend giving the results to a professional tax advisor for review when filing your taxes!
+            Embora possa poupar muito tempo a categorizar transações e gerar relatórios, recomendo
+            que entregue os resultados a um contabilista profissional para revisão!
           </p>
         </CardDescription>
         <div className="mt-2">
-          <Link href="https://github.com/vas3k/TaxHacker" className="text-blue-500 hover:underline">
-            Source Code
-          </Link>
-          <span className="mx-2">|</span>
-          <Link href="https://github.com/vas3k/TaxHacker/issues" className="text-blue-500 hover:underline">
-            Request New Feature
-          </Link>
-          <span className="mx-2">|</span>
-          <Link href="https://github.com/vas3k/TaxHacker/issues" className="text-blue-500 hover:underline">
-            Report a Bug
-          </Link>
-          <span className="mx-2">|</span>
-          <Link href="mailto:me@vas3k.ru" className="text-blue-500 hover:underline">
-            Contact the Author
+          <Link href="mailto:portal.rh@ramosferreira.com" className="text-teal-600 hover:underline">
+            Contactar Suporte
           </Link>
         </div>
         <div className="flex flex-wrap gap-2 mt-8">
@@ -90,32 +78,32 @@ export async function WelcomeWidget() {
             <Link href="/settings/llm">
               <Button>
                 <Key className="h-4 w-4" />
-                Please give your ChatGPT key here
+                Insira a sua chave de IA aqui
               </Button>
             </Link>
           )}
           <Link href="/settings">
             <Button variant="outline">
               <Banknote className="h-4 w-4" />
-              Default Currency: {settings.default_currency}
+              Moeda: {settings.default_currency}
             </Button>
           </Link>
           <Link href="/settings/categories">
             <Button variant="outline">
               <ChartBarStacked className="h-4 w-4" />
-              Categories
+              Categorias
             </Button>
           </Link>
           <Link href="/settings/projects">
             <Button variant="outline">
               <FolderOpenDot className="h-4 w-4" />
-              Projects
+              Projetos
             </Button>
           </Link>
           <Link href="/settings/fields">
             <Button variant="outline">
               <TextCursorInput className="h-4 w-4" />
-              Custom Fields
+              Campos Personalizados
             </Button>
           </Link>
         </div>

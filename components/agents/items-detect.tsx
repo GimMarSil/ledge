@@ -14,7 +14,6 @@ export const ItemsDetectTool = ({ file, data }: { file?: File; data: Transaction
 
   const handleSplit = async () => {
     if (!file) {
-      console.error("No file selected")
       return
     }
 
@@ -26,15 +25,14 @@ export const ItemsDetectTool = ({ file, data }: { file?: File; data: Transaction
 
       const result = await splitFileIntoItemsAction(null, formData)
       if (result.success) {
-        showNotification({ code: "global.banner", message: "Split successful!", type: "success" })
+        showNotification({ code: "global.banner", message: "Divisão concluída!", type: "success" })
         showNotification({ code: "sidebar.unsorted", message: "new" })
         setTimeout(() => showNotification({ code: "sidebar.unsorted", message: "" }), 3000)
       } else {
-        showNotification({ code: "global.banner", message: result.error || "Failed to split", type: "failed" })
+        showNotification({ code: "global.banner", message: result.error || "Falha ao dividir", type: "failed" })
       }
     } catch (error) {
-      console.error("Failed to split items:", error)
-      showNotification({ code: "global.banner", message: "Failed to split items", type: "failed" })
+      showNotification({ code: "global.banner", message: "Falha ao dividir itens", type: "failed" })
     } finally {
       setIsSplitting(false)
     }
@@ -52,8 +50,20 @@ export const ItemsDetectTool = ({ file, data }: { file?: File; data: Transaction
               <div className="text-sm">{item.name}</div>
               <div className="text-xs text-muted-foreground">{item.description}</div>
             </div>
-            <div className="font-medium">
-              {formatCurrency((item.total || 0) * 100, item.currencyCode || data.currencyCode || "USD")}
+            <div className="flex flex-col items-end gap-0.5">
+              <div className="font-medium">
+                {formatCurrency((item.total || 0) * 100, item.currencyCode || data.currencyCode || "EUR")}
+              </div>
+              {item.vat_rate != null && (
+                <div className="text-xs text-muted-foreground">
+                  IVA {item.vat_rate}%
+                  {item.vat_amount != null && (
+                    <span className="ml-1">
+                      ({formatCurrency((item.vat_amount || 0) * 100, item.currencyCode || data.currencyCode || "EUR")})
+                    </span>
+                  )}
+                </div>
+              )}
             </div>
           </div>
         ))}
@@ -64,12 +74,12 @@ export const ItemsDetectTool = ({ file, data }: { file?: File; data: Transaction
           {isSplitting ? (
             <>
               <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-              Splitting...
+              A dividir...
             </>
           ) : (
             <>
               <Split className="w-4 h-4 mr-2" />
-              Split into {data.items.length} individual transactions
+              Dividir em {data.items.length} transações individuais
             </>
           )}
         </Button>

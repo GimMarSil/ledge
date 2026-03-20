@@ -16,10 +16,10 @@ export const FormSelectType = ({
   isRequired?: boolean
 } & SelectProps) => {
   const items = [
-    { code: "expense", name: "Expense", badge: "↓" },
-    { code: "income", name: "Income", badge: "↑" },
-    { code: "pending", name: "Pending", badge: "⏲︎" },
-    { code: "other", name: "Other", badge: "?" },
+    { code: "expense", name: "Despesa", badge: "↓" },
+    { code: "income", name: "Receita", badge: "↑" },
+    { code: "pending", name: "Pendente", badge: "⏲︎" },
+    { code: "other", name: "Outro", badge: "?" },
   ]
 
   return (

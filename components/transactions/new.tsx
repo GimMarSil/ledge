@@ -28,8 +28,8 @@ export async function NewTransactionDialog({ children }: { children: React.React
       </DialogTrigger>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">New Transaction</DialogTitle>
-          <DialogDescription>Create a new transaction</DialogDescription>
+          <DialogTitle className="text-2xl font-bold">Nova Transação</DialogTitle>
+          <DialogDescription>Criar uma nova transação</DialogDescription>
         </DialogHeader>
 
         <TransactionCreateForm

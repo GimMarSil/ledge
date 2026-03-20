@@ -22,11 +22,8 @@ export async function POST(request: Request) {
   try {
     event = stripeClient.webhooks.constructEvent(body, signature, config.stripe.webhookSecret)
   } catch (err) {
-    console.error(`Webhook signature verification failed:`, err)
     return new NextResponse("Webhook signature verification failed", { status: 400 })
   }
-
-  console.log("Webhook event:", event)
 
   // Handle the event
   try {
@@ -56,13 +53,11 @@ export async function POST(request: Request) {
       }
 
       default:
-        console.log(`Unhandled event type ${event.type}`)
         return new NextResponse("No handler for event type", { status: 400 })
     }
 
     return new NextResponse("Webhook processed successfully", { status: 200 })
   } catch (error) {
-    console.error("Error processing webhook:", error)
     return new NextResponse("Webhook processing failed", { status: 500 })
   }
 }
@@ -71,8 +66,6 @@ async function handleUserSubscriptionUpdate(
   customerId: string,
   item: Stripe.SubscriptionItem
 ) {
-  console.log(`Updating subscription for customer ${customerId}`)
-
   if (!stripeClient) {
     return new NextResponse("Stripe client is not initialized", { status: 500 })
   }
@@ -85,8 +78,6 @@ async function handleUserSubscriptionUpdate(
   let user = await getUserByStripeCustomerId(customerId)
   if (!user) {
     const customer = (await stripeClient.customers.retrieve(customerId)) as Stripe.Customer
-    console.log(`User not found for customer ${customerId}, creating new user with email ${customer.email}`)
-
     user = await getOrCreateCloudUser(customer.email as string, {
       email: customer.email as string,
       name: customer.name as string,
@@ -107,5 +98,4 @@ async function handleUserSubscriptionUpdate(
     updatedAt: new Date(),
   })
 
-  console.log(`Updated user ${user.id} with plan ${plan.code} and expires at ${newMembershipExpiresAt}`)
 }

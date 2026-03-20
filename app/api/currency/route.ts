@@ -96,7 +96,6 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({ rate: rate.rate, cached: false })
   } catch (error) {
-    console.error("Currency API error:", error)
     return NextResponse.json({ error: "Internal server error" }, { status: 500 })
   }
 }

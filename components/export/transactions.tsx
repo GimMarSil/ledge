@@ -43,13 +43,11 @@ export function ExportTransactionsDialog({
   const [includeAttachments, setIncludeAttachments] = useState(true)
   const { isLoading, startProgress, progress } = useProgress({
     onError: (error) => {
-      console.error("Export progress error:", error)
     },
   })
 
   const { download, isDownloading } = useDownload({
     onError: (error) => {
-      console.error("Download error:", error)
     },
   })
 
@@ -70,7 +68,6 @@ export function ExportTransactionsDialog({
       }).toString()}`
       await download(exportUrl, "transactions.zip")
     } catch (error) {
-      console.error("Failed to start export:", error)
     }
   }
 
@@ -81,20 +78,20 @@ export function ExportTransactionsDialog({
       </DialogTrigger>
       <DialogContent className="max-w-xl">
         <DialogHeader>
-          <DialogTitle className="text-2xl font-bold">Export {total} Transactions</DialogTitle>
-          <DialogDescription>Export selected transactions and files as a CSV file or a ZIP archive</DialogDescription>
+          <DialogTitle className="text-2xl font-bold">Exportar {total} Transações</DialogTitle>
+          <DialogDescription>Exporte transações e ficheiros selecionados como CSV ou arquivo ZIP</DialogDescription>
         </DialogHeader>
         <div className="flex flex-col gap-4">
           <div className="flex flex-col gap-4">
             {exportFilters.search && (
               <div className="flex flex-row items-center gap-2">
-                <span className="text-sm font-medium">Search query:</span>
+                <span className="text-sm font-medium">Pesquisa:</span>
                 <span className="text-sm">{exportFilters.search}</span>
               </div>
             )}
 
             <div className="flex flex-row items-center gap-2">
-              <span className="text-sm font-medium">Time range:</span>
+              <span className="text-sm font-medium">Período:</span>
 
               <DateRangePicker
                 defaultDate={{
@@ -114,30 +111,30 @@ export function ExportTransactionsDialog({
 
             <div className="flex flex-row items-center gap-2">
               <FormSelectCategory
-                title="Category"
+                title="Categoria"
                 name="category"
                 categories={categories}
                 value={exportFilters.categoryCode}
                 onValueChange={(value) => setExportFilters({ ...exportFilters, categoryCode: value })}
-                placeholder="All Categories"
-                emptyValue="All Categories"
+                placeholder="Todas as Categorias"
+                emptyValue="Todas as Categorias"
               />
 
               <FormSelectProject
-                title="Project"
+                title="Projeto"
                 name="project"
                 projects={projects}
                 value={exportFilters.projectCode}
                 onValueChange={(value) => setExportFilters({ ...exportFilters, projectCode: value })}
-                placeholder="All Projects"
-                emptyValue="All Projects"
+                placeholder="Todos os Projetos"
+                emptyValue="Todos os Projetos"
               />
             </div>
           </div>
 
           <Separator />
 
-          <div className="text-lg font-bold">Fields to be included in CSV</div>
+          <div className="text-lg font-bold">Campos a incluir no CSV</div>
 
           <div className="grid grid-cols-2 gap-2">
             {fields.map((field) => (
@@ -169,8 +166,8 @@ export function ExportTransactionsDialog({
                 onChange={(e) => setIncludeAttachments(e.target.checked)}
               />
               <span className="flex flex-col">
-                <span className="font-medium">Include attached files</span>
-                <span className="text-sm">(create a zip archive)</span>
+                <span className="font-medium">Incluir ficheiros anexados</span>
+                <span className="text-sm">(criar arquivo zip)</span>
               </span>
             </label>
           </div>
@@ -179,11 +176,11 @@ export function ExportTransactionsDialog({
           <Button type="button" onClick={handleSubmit} disabled={isLoading || isDownloading}>
             {isLoading
               ? progress?.current
-                ? `Archiving ${progress.current}/${progress.total} files`
-                : "Exporting..."
+                ? `A arquivar ${progress.current}/${progress.total} ficheiros`
+                : "A exportar..."
               : isDownloading
-                ? "Archive is created. Downloading..."
-                : "Export Transactions"}
+                ? "Arquivo criado. A transferir..."
+                : "Exportar Transações"}
           </Button>
         </DialogFooter>
       </DialogContent>

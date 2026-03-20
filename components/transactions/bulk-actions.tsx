@@ -15,7 +15,7 @@ export function BulkActionsMenu({ selectedIds, onActionComplete }: BulkActionsMe
 
   const handleDelete = async () => {
     const confirmMessage =
-      "Are you sure you want to delete these transactions and all their files? This action cannot be undone."
+      "Tem a certeza que quer eliminar estas transações e todos os seus ficheiros? Esta ação não pode ser desfeita."
     if (!confirm(confirmMessage)) return
 
     try {
@@ -26,8 +26,7 @@ export function BulkActionsMenu({ selectedIds, onActionComplete }: BulkActionsMe
       }
       onActionComplete?.()
     } catch (error) {
-      console.error("Failed to delete transactions:", error)
-      alert(`Failed to delete transactions: ${error}`)
+      alert(`Falha ao eliminar transações: ${error}`)
     } finally {
       setIsLoading(false)
     }
@@ -37,7 +36,7 @@ export function BulkActionsMenu({ selectedIds, onActionComplete }: BulkActionsMe
     <div className="fixed bottom-4 right-4 z-50">
       <Button variant="destructive" className="min-w-48 gap-2" disabled={isLoading} onClick={handleDelete}>
         <Trash2 className="h-4 w-4" />
-        Delete {selectedIds.length} transactions
+        Eliminar {selectedIds.length} transações
       </Button>
     </div>
   )

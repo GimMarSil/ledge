@@ -58,12 +58,9 @@ export async function restoreBackupAction(
             }. Supported versions: ${SUPPORTED_BACKUP_VERSIONS.join(", ")}`,
           }
         }
-        console.log(`Restoring backup version ${metadata.version} created at ${metadata.timestamp}`)
       } catch (error) {
-        console.warn("Could not parse backup metadata:", error)
       }
     } else {
-      console.warn("No metadata found in backup, assuming legacy format")
     }
 
     // Remove existing data
@@ -81,11 +78,9 @@ export async function restoreBackupAction(
         if (jsonFile) {
           const jsonContent = await jsonFile.async("string")
           const restoredCount = await modelFromJSON(user.id, backup, jsonContent)
-          console.log(`Restored ${restoredCount} records from ${backup.filename}`)
           counters[backup.filename] = restoredCount
         }
       } catch (error) {
-        console.error(`Error restoring model from ${backup.filename}:`, error)
       }
     }
 
@@ -105,14 +100,12 @@ export async function restoreBackupAction(
         const zipFilePath = path.join("data/uploads", filePathWithoutPrefix)
         const zipFile = zip.file(zipFilePath)
         if (!zipFile) {
-          console.log(`File ${file.path} not found in backup`)
           continue
         }
 
         const fileContents = await zipFile.async("nodebuffer")
         const fullFilePath = safePathJoin(userUploadsDirectory, filePathWithoutPrefix)
         if (!fullFilePath.startsWith(path.normalize(userUploadsDirectory))) {
-          console.error(`Attempted path traversal detected for file ${file.path}`)
           continue
         }
 
@@ -121,7 +114,6 @@ export async function restoreBackupAction(
           await fs.writeFile(fullFilePath, fileContents)
           restoredFilesCount++
         } catch (error) {
-          console.error(`Error writing file ${fullFilePath}:`, error)
           continue
         }
 
@@ -134,7 +126,6 @@ export async function restoreBackupAction(
       }
       counters["Uploaded attachments"] = restoredFilesCount
     } catch (error) {
-      console.error("Error restoring uploaded files:", error)
       return {
         success: false,
         error: `Error restoring uploaded files: ${error instanceof Error ? error.message : String(error)}`,
@@ -143,7 +134,6 @@ export async function restoreBackupAction(
 
     return { success: true, data: { counters } }
   } catch (error) {
-    console.error("Error restoring from backup:", error)
     return {
       success: false,
       error: `Error restoring from backup: ${error instanceof Error ? error.message : String(error)}`,
@@ -157,7 +147,6 @@ async function cleanupUserTables(userId: string) {
     try {
       await model.deleteMany({ where: { userId } })
     } catch (error) {
-      console.error(`Error clearing table:`, error)
     }
   }
 }

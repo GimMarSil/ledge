@@ -8,7 +8,7 @@ export default async function AppsPage() {
     <>
       <header className="flex flex-wrap items-center justify-between gap-2 mb-8">
         <h2 className="flex flex-row gap-3 md:gap-5">
-          <span className="text-3xl font-bold tracking-tight">Apps</span>
+          <span className="text-3xl font-bold tracking-tight">Aplicações</span>
           <span className="text-3xl tracking-tight opacity-20">{apps.length}</span>
         </h2>
       </header>

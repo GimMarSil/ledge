@@ -2,6 +2,7 @@
 
 import { deleteTransactionAction, saveTransactionAction } from "@/app/(app)/transactions/actions"
 import { ItemsDetectTool } from "@/components/agents/items-detect"
+import { VatBreakdownTable } from "@/components/agents/vat-breakdown"
 import ToolWindow from "@/components/agents/tool-window"
 import { FormError } from "@/components/forms/error"
 import { FormSelectCategory } from "@/components/forms/select-category"
@@ -71,7 +72,7 @@ export default function TransactionEditForm({
   }, [fields])
 
   const handleDelete = async () => {
-    if (confirm("Are you sure? This will delete the transaction with all the files permanently")) {
+    if (confirm("Tem a certeza? Esta ação irá eliminar a transação e todos os ficheiros permanentemente")) {
       startTransition(async () => {
         await deleteAction(transaction.id)
         router.back()
@@ -152,7 +153,7 @@ export default function TransactionEditForm({
           <>
             {formData.convertedTotal !== null && (
               <FormInput
-                title={`Total converted to ${formData.convertedCurrencyCode || "UNKNOWN CURRENCY"}`}
+                title={`Total convertido para ${formData.convertedCurrencyCode || "MOEDA DESCONHECIDA"}`}
                 type="number"
                 step="0.01"
                 name="convertedTotal"
@@ -163,7 +164,7 @@ export default function TransactionEditForm({
             )}
             {(!formData.convertedCurrencyCode || formData.convertedCurrencyCode !== settings.default_currency) && (
               <FormSelectCurrency
-                title="Convert to"
+                title="Converter para"
                 name="convertedCurrencyCode"
                 defaultValue={formData.convertedCurrencyCode || settings.default_currency}
                 currencies={currencies}
@@ -216,8 +217,17 @@ export default function TransactionEditForm({
         ))}
       </div>
 
+      {formData.vat_breakdown && (
+        <ToolWindow title="Desdobramento de IVA">
+          <VatBreakdownTable
+            vatBreakdown={formData.vat_breakdown}
+            currencyCode={formData.currencyCode || settings.default_currency}
+          />
+        </ToolWindow>
+      )}
+
       {formData.items && Array.isArray(formData.items) && formData.items.length > 0 && (
-        <ToolWindow title="Detected items">
+        <ToolWindow title="Itens detetados">
           <ItemsDetectTool data={formData as TransactionData} />
         </ToolWindow>
       )}
@@ -226,7 +236,7 @@ export default function TransactionEditForm({
         <Button type="button" onClick={handleDelete} variant="destructive" disabled={isDeleting}>
           <>
             <Trash2 className="h-4 w-4" />
-            {isDeleting ? "⏳ Deleting..." : "Delete "}
+            {isDeleting ? "⏳ A eliminar..." : "Eliminar"}
           </>
         </Button>
 
@@ -234,12 +244,12 @@ export default function TransactionEditForm({
           {isSaving ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              Saving...
+              A guardar...
             </>
           ) : (
             <>
               <Save className="h-4 w-4" />
-              Save Transaction
+              Guardar Transação
             </>
           )}
         </Button>

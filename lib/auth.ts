@@ -42,7 +42,7 @@ export const auth = betterAuth({
     },
   },
   advanced: {
-    cookiePrefix: "taxhacker",
+    cookiePrefix: "ledge",
     database: {
       generateId: "uuid",
     },

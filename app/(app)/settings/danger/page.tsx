@@ -7,16 +7,16 @@ export default async function DangerSettingsPage() {
 
   return (
     <div className="container">
-      <h1 className="text-2xl font-bold mb-2 text-red-500">The Danger Zone</h1>
+      <h1 className="text-2xl font-bold mb-2 text-red-500">Zona de Perigo</h1>
       <p className="text-sm text-red-400 mb-8 max-w-prose">
-        The settings here will overwrite your existing fields, categories and prompts. Use them only if something is
-        broken.
+        As definições aqui irão substituir os seus campos, categorias e prompts existentes. Use apenas se algo estiver
+        avariado.
       </p>
       <div className="space-y-10">
         <div className="space-y-2">
-          <h3 className="text-lg font-bold">LLM settings</h3>
+          <h3 className="text-lg font-bold">Definições de IA</h3>
           <p className="text-sm text-gray-500 mb-6 max-w-prose">
-            This will reset the system prompt and other LLM settings to their default values
+            Isto irá repor o prompt do sistema e outras definições de IA para os valores predefinidos
           </p>
           <form
             action={async () => {
@@ -25,14 +25,14 @@ export default async function DangerSettingsPage() {
             }}
           >
             <Button variant="destructive" type="submit">
-              Reset main LLM prompt
+              Repor prompt principal de IA
             </Button>
           </form>
         </div>
         <div className="space-y-2">
-          <h3 className="text-lg font-bold">Fields, currencies and categories</h3>
+          <h3 className="text-lg font-bold">Campos, moedas e categorias</h3>
           <p className="text-sm text-gray-500 mb-6 max-w-prose">
-            This will reset all fields, currencies and categories to their default values
+            Isto irá repor todos os campos, moedas e categorias para os valores predefinidos
           </p>
           <form
             action={async () => {
@@ -41,7 +41,7 @@ export default async function DangerSettingsPage() {
             }}
           >
             <Button variant="destructive" type="submit">
-              Reset fields, currencies and categories
+              Repor campos, moedas e categorias
             </Button>
           </form>
         </div>

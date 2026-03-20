@@ -55,7 +55,6 @@ export async function analyzeFileAction(
   try {
     attachments = await loadAttachmentsForAI(user, file)
   } catch (error) {
-    console.error("Failed to retrieve files:", error)
     return { success: false, error: "Failed to retrieve files: " + error }
   }
 
@@ -69,8 +68,6 @@ export async function analyzeFileAction(
   const schema = fieldsToJsonSchema(fields)
 
   const results = await analyzeTransaction(prompt, schema, attachments, file.id, user.id)
-
-  console.log("Analysis results:", results)
 
   if (results.data?.tokensUsed && results.data.tokensUsed > 0) {
     await updateUser(user.id, { aiBalance: { decrement: 1 } })
@@ -123,7 +120,6 @@ export async function saveFileAsTransactionAction(
 
     return { success: true, data: transaction }
   } catch (error) {
-    console.error("Failed to save transaction:", error)
     return { success: false, error: `Failed to save transaction: ${error}` }
   }
 }
@@ -138,7 +134,6 @@ export async function deleteUnsortedFileAction(
     revalidatePath("/unsorted")
     return { success: true }
   } catch (error) {
-    console.error("Failed to delete file:", error)
     return { success: false, error: "Failed to delete file" }
   }
 }
@@ -214,7 +209,6 @@ export async function splitFileIntoItemsAction(
     revalidatePath("/unsorted")
     return { success: true }
   } catch (error) {
-    console.error("Failed to split file into items:", error)
     return { success: false, error: `Failed to split file into items: ${error}` }
   }
 }

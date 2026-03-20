@@ -43,7 +43,6 @@ export async function resizeImage(
       resizedPath: outputPath,
     }
   } catch (error) {
-    console.error("Error resizing image:", error)
     return {
       contentType: "image/unknown",
       resizedPath: origFilePath,

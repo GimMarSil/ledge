@@ -33,7 +33,7 @@ export default function DashboardDropZoneWidget() {
           setTimeout(() => showNotification({ code: "sidebar.unsorted", message: "" }), 3000)
           router.push("/unsorted")
         } else {
-          setUploadError(result.error ? result.error : "Something went wrong...")
+          setUploadError(result.error ? result.error : "Algo correu mal...")
         }
         setIsUploading(false)
       })
@@ -59,11 +59,11 @@ export default function DashboardDropZoneWidget() {
           )}
           <div>
             <p className="text-lg font-medium">
-              {isUploading ? "Uploading..." : "Take a photo or drop your files here"}
+              {isUploading ? "A carregar..." : "Tire uma foto ou largue os seus ficheiros aqui"}
             </p>
             {!uploadError && (
               <p className="text-sm text-muted-foreground">
-                upload receipts, invoices and any other documents for me to scan
+                carregue recibos, faturas e outros documentos para análise
               </p>
             )}
             {uploadError && <FormError>{uploadError}</FormError>}

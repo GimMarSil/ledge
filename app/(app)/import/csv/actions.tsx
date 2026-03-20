@@ -38,7 +38,6 @@ export async function parseCSVAction(
 
     return { success: true, data: rows }
   } catch (error) {
-    console.error("Error parsing CSV:", error)
     return { success: false, error: "Failed to parse CSV file" }
   }
 }
@@ -70,7 +69,6 @@ export async function saveTransactionsAction(
 
     return { success: true }
   } catch (error) {
-    console.error("Error saving transactions:", error)
     return { success: false, error: "Failed to save transactions: " + error }
   }
 }

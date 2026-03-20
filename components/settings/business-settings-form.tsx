@@ -15,28 +15,28 @@ export default function BusinessSettingsForm({ user }: { user: User }) {
     <div>
       <form action={saveAction} className="space-y-4">
         <FormInput
-          title="Business Name"
+          title="Nome da Empresa"
           name="businessName"
-          placeholder="Acme Inc."
+          placeholder="Empresa, Lda."
           defaultValue={user.businessName ?? ""}
         />
 
         <FormTextarea
-          title="Business Address"
+          title="Morada da Empresa"
           name="businessAddress"
-          placeholder="Street, City, State, Zip Code, Country, Tax ID"
+          placeholder="Rua, Cidade, Código Postal, País, NIF/NIPC"
           defaultValue={user.businessAddress ?? ""}
         />
 
         <FormTextarea
-          title="Bank Details"
+          title="Dados Bancários"
           name="businessBankDetails"
-          placeholder="Bank Name, Account Number, BIC, IBAN, details of payment, etc."
+          placeholder="Banco, Número de Conta, BIC, IBAN, dados de pagamento"
           defaultValue={user.businessBankDetails ?? ""}
         />
 
         <FormAvatar
-          title="Business Logo"
+          title="Logótipo da Empresa"
           name="businessLogo"
           className="w-52 h-52"
           defaultValue={user.businessLogo ?? ""}
@@ -44,12 +44,12 @@ export default function BusinessSettingsForm({ user }: { user: User }) {
 
         <div className="flex flex-row items-center gap-4">
           <Button type="submit" disabled={pending}>
-            {pending ? "Saving..." : "Save"}
+            {pending ? "A guardar..." : "Guardar"}
           </Button>
           {saveState?.success && (
             <p className="text-green-500 flex flex-row items-center gap-2">
               <CircleCheckBig />
-              Saved!
+              Guardado!
             </p>
           )}
         </div>

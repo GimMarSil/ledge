@@ -275,14 +275,12 @@ export async function modelFromJSON(
         const data = await backupSettings.restore(userId, record)
         await backupSettings.model.create({ data })
       } catch (error) {
-        console.error(`Error importing record:`, error)
       }
       insertedCount++
     }
 
     return insertedCount
   } catch (error) {
-    console.error(`Error parsing JSON content:`, error)
     return 0
   }
 }
