@@ -1,0 +1,128 @@
+name: Deploy Despesas & Fiscal
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-despesas
+  cancel-in-progress: false
+
+env:
+  SERVER_PATH: /opt/saas-platform/modules/despesas-fiscal
+  CONTAINER_NAME: buildflow_despesas_fiscal
+  COMPOSE_FILE: docker-compose.prod.yml
+  HEALTH_URL: https://despesas.buildflow.pt/api/buildflow/health
+
+jobs:
+  deploy:
+    name: Deploy to Hetzner VPS
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Copy files to server
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          source: "."
+          target: ${{ env.SERVER_PATH }}
+          overwrite: true
+          rm: false
+          strip_components: 0
+          tar_exec: "tar"
+          tar_tmp_path: "/tmp"
+
+      - name: Build and deploy container
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 10m
+          script: |
+            set -e
+
+            echo "=== Despesas & Fiscal Deploy ==="
+            cd ${{ env.SERVER_PATH }}
+
+            # Remove files that should not be on server
+            rm -rf node_modules .next .git .env .env.local .env.development data pgdata prisma/client
+
+            # Verify .env.production exists on server
+            if [ ! -f .env.production ]; then
+              echo "ERROR: .env.production not found at ${{ env.SERVER_PATH }}"
+              echo "Create the file on the server before deploying."
+              exit 1
+            fi
+
+            # Ensure data directories exist and are preserved
+            mkdir -p data pgdata
+
+            echo "--- Building and starting containers ---"
+            docker compose -f ${{ env.COMPOSE_FILE }} up -d --build
+
+            echo "--- Waiting for container to be running ---"
+            for i in $(seq 1 30); do
+              STATE=$(docker inspect --format='{{.State.Status}}' ${{ env.CONTAINER_NAME }} 2>/dev/null || echo 'unknown')
+              if [ "$STATE" = "running" ]; then
+                echo "Container running after ${i}x5s."
+                break
+              fi
+              if [ "$i" -eq 30 ]; then
+                echo "ERROR: Container did not start after 150s."
+                docker logs --tail 50 ${{ env.CONTAINER_NAME }}
+                exit 1
+              fi
+              echo "State: $STATE (attempt $i/30)..."
+              sleep 5
+            done
+
+            # Give the entrypoint time to run migrations and start the app
+            echo "--- Waiting for app startup (migrations + boot) ---"
+            sleep 15
+
+      - name: Verify deployment
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 2m
+          script: |
+            set -e
+
+            echo "--- Verifying deployment ---"
+
+            # Check container is running
+            if ! docker ps --format '{{.Names}}' | grep -q '^${{ env.CONTAINER_NAME }}$'; then
+              echo "ERROR: Container ${{ env.CONTAINER_NAME }} is not running."
+              docker logs --tail 30 ${{ env.CONTAINER_NAME }} 2>/dev/null || true
+              exit 1
+            fi
+
+            # HTTP health check with retries (entrypoint runs migrations first)
+            echo "--- Running health check ---"
+            for i in $(seq 1 6); do
+              HTTP_STATUS=$(curl -s -o /dev/null -w '%{http_code}' --max-time 10 ${{ env.HEALTH_URL }} || echo "000")
+              if [ "$HTTP_STATUS" -ge 200 ] && [ "$HTTP_STATUS" -lt 400 ]; then
+                echo "Health check passed: HTTP $HTTP_STATUS"
+                break
+              fi
+              if [ "$i" -eq 6 ]; then
+                echo "WARNING: Health check returned HTTP $HTTP_STATUS after 6 attempts."
+                echo "Container logs (last 30 lines):"
+                docker logs --tail 30 ${{ env.CONTAINER_NAME }}
+                exit 1
+              fi
+              echo "Health check attempt $i/6: HTTP $HTTP_STATUS, retrying in 10s..."
+              sleep 10
+            done
+
+            echo "=== Deploy complete: ${{ env.HEALTH_URL }} ==="
