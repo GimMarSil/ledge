@@ -10,8 +10,10 @@ import {
   getUpcomingDeadlines,
   getOverdueDeadlines,
 } from "@/lib/fiscal/calendar"
+import { ATNewsItem, ATServiceLink } from "@/lib/fiscal/at-portal"
 import { FiscalHeader } from "./fiscal-header"
 import { FiscalCalendarWidget } from "./fiscal-calendar-widget"
+import { ATNewsWidget, ATServiceLinksWidget, RegimeConfigBanner } from "./at-integration-widget"
 import { AlertTriangle } from "lucide-react"
 
 interface TransactionWithCategory {
@@ -34,8 +36,11 @@ interface FiscalDashboardProps {
   transactions: TransactionWithCategory[]
   year: number
   regime: BusinessRegime
+  isRegimeConfigured: boolean
   upcomingDeadlines: FiscalDeadlineInstance[]
   overdueDeadlines: FiscalDeadlineInstance[]
+  atNews: ATNewsItem[]
+  atServiceLinks: ATServiceLink[]
 }
 
 interface VATSummary {
@@ -49,8 +54,11 @@ export function FiscalDashboard({
   transactions,
   year: initialYear,
   regime: initialRegime,
+  isRegimeConfigured,
   upcomingDeadlines: initialUpcoming,
   overdueDeadlines: initialOverdue,
+  atNews,
+  atServiceLinks,
 }: FiscalDashboardProps) {
   const [regime, setRegime] = useState<BusinessRegime>(initialRegime)
   const [year, setYear] = useState(initialYear)
@@ -114,6 +122,9 @@ export function FiscalDashboard({
         onRegimeChange={setRegime}
         onYearChange={setYear}
       />
+
+      {/* Banner de configuracao (se regime nao definido) */}
+      <RegimeConfigBanner isConfigured={isRegimeConfigured} />
 
       {/* Metricas principais */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -238,6 +249,12 @@ export function FiscalDashboard({
           </ul>
         </div>
       )}
+
+      {/* AT: Noticias + Links de Servicos */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <ATNewsWidget news={atNews} />
+        <ATServiceLinksWidget links={atServiceLinks} regime={regime} />
+      </div>
 
       {/* Acoes */}
       <div className="flex gap-3">
