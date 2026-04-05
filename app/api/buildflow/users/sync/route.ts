@@ -49,7 +49,7 @@ export async function POST(request: Request) {
               tenantId: tenantId,
               emailVerified: true,
               membershipPlan: "buildflow",
-              storageLimit: 5 * 1024 * 1024 * 1024,
+              storageLimit: -1, // unlimited for BuildFlow users
               aiBalance: 50,
             },
           })

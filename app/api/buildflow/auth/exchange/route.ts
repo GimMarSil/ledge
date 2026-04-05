@@ -92,7 +92,7 @@ export async function GET(request: Request) {
         tenantId: payload.tenantId,
         emailVerified: true,
         membershipPlan: "buildflow",
-        storageLimit: 5 * 1024 * 1024 * 1024, // 5 GB
+        storageLimit: -1, // unlimited for BuildFlow users
         aiBalance: 100,
       },
     })
