@@ -1,5 +1,7 @@
 import { z } from "zod"
 
+const isServer = typeof window === "undefined"
+
 const envSchema = z.object({
   BASE_URL: z.string().url().default("http://localhost:7331"),
   PORT: z.string().default("7331"),
@@ -10,9 +12,9 @@ const envSchema = z.object({
   GOOGLE_MODEL_NAME: z.string().default("gemini-2.5-flash"),
   MISTRAL_API_KEY: z.string().optional(),
   MISTRAL_MODEL_NAME: z.string().default("mistral-medium-latest"),
-  BETTER_AUTH_SECRET: z
-    .string()
-    .min(32, "BETTER_AUTH_SECRET deve ter pelo menos 32 caracteres. Gere um com: openssl rand -base64 48"),
+  BETTER_AUTH_SECRET: isServer
+    ? z.string().min(32, "BETTER_AUTH_SECRET deve ter pelo menos 32 caracteres. Gere um com: openssl rand -base64 48")
+    : z.string().default("client-side-not-available"),
   DISABLE_SIGNUP: z.enum(["true", "false"]).default("false"),
   RESEND_API_KEY: z.string().default("please-set-your-resend-api-key-here"),
   RESEND_FROM_EMAIL: z.string().default("Ledge <user@localhost>"),

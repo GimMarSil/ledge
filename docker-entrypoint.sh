@@ -1,14 +1,11 @@
 #!/bin/sh
 set -e
 
-# Extract server part from DATABASE_URL (remove database name)
-SERVER_URL=$(echo "$DATABASE_URL" | sed 's/\/[^/]*$//')
-
-# Wait for database to be ready using psql and SERVER_URL
-echo "Waiting for PostgreSQL server to be ready at $SERVER_URL..."
-until psql "$SERVER_URL" -c '\q' >/dev/null 2>&1; do
+# Wait for database to be ready
+echo "Waiting for PostgreSQL to be ready..."
+until psql "$DATABASE_URL" -c '\q' >/dev/null 2>&1; do
   echo "PostgreSQL server is unavailable - sleeping"
-  sleep 1
+  sleep 2
 done
 echo "PostgreSQL server is ready!"
 

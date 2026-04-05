@@ -22,6 +22,10 @@ RUN npm ci
 # Copy source code
 COPY . .
 
+# Provide dummy env vars required by Zod config validation at build time
+ENV BETTER_AUTH_SECRET="build-time-dummy-secret-replaced-at-runtime-by-env"
+ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
+
 # Build the application
 RUN npm run build
 
