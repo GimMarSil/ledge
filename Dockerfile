@@ -26,6 +26,9 @@ COPY . .
 ENV BETTER_AUTH_SECRET="build-time-dummy-secret-replaced-at-runtime-by-env"
 ENV DATABASE_URL="postgresql://dummy:dummy@localhost:5432/dummy"
 
+# Ensure Prisma client is generated with latest schema
+RUN npx prisma generate --schema=./prisma/schema.prisma
+
 # Build the application
 RUN npm run build
 
