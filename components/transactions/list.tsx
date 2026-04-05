@@ -17,7 +17,7 @@ type FieldRenderer = {
   code: string
   classes?: string
   sortable: boolean
-  formatValue?: (transaction: Transaction & any) => React.ReactNode
+  formatValue?: (transaction: Transaction & Record<string, unknown>) => React.ReactNode
   footerValue?: (transactions: Transaction[]) => React.ReactNode
 }
 
@@ -50,10 +50,10 @@ export const standardFieldRenderers: Record<string, FieldRenderer> = {
     name: "Projeto",
     code: "projectCode",
     sortable: true,
-    formatValue: (transaction: Transaction & { project: Project }) =>
+    formatValue: (transaction: Transaction & Record<string, unknown>) =>
       transaction.projectCode ? (
-        <Badge className="whitespace-nowrap" style={{ backgroundColor: transaction.project?.color }}>
-          {transaction.project?.name || ""}
+        <Badge className="whitespace-nowrap" style={{ backgroundColor: (transaction.project as Project)?.color }}>
+          {(transaction.project as Project)?.name || ""}
         </Badge>
       ) : (
         "-"
@@ -63,10 +63,10 @@ export const standardFieldRenderers: Record<string, FieldRenderer> = {
     name: "Categoria",
     code: "categoryCode",
     sortable: true,
-    formatValue: (transaction: Transaction & { category: Category }) =>
+    formatValue: (transaction: Transaction & Record<string, unknown>) =>
       transaction.categoryCode ? (
-        <Badge className="whitespace-nowrap" style={{ backgroundColor: transaction.category?.color }}>
-          {transaction.category?.name || ""}
+        <Badge className="whitespace-nowrap" style={{ backgroundColor: (transaction.category as Category)?.color }}>
+          {(transaction.category as Category)?.name || ""}
         </Badge>
       ) : (
         "-"
@@ -92,8 +92,8 @@ export const standardFieldRenderers: Record<string, FieldRenderer> = {
       <div className="text-right text-lg">
         <div
           className={cn(
-            { income: "text-green-500", expense: "text-red-500", other: "text-black" }[transaction.type || "other"],
-            "flex flex-col justify-end"
+            { income: "text-emerald-600 dark:text-emerald-400", expense: "text-red-600 dark:text-red-400", other: "text-foreground" }[transaction.type || "other"],
+            "flex flex-col justify-end tabular-nums"
           )}
         >
           <span>
@@ -122,7 +122,7 @@ export const standardFieldRenderers: Record<string, FieldRenderer> = {
             {Object.entries(netTotalPerCurrency).map(([currency, total]) => (
               <dd
                 key={`net-${currency}`}
-                className={cn("text-sm first:text-base font-medium", total >= 0 ? "text-green-600" : "text-red-600")}
+                className={cn("text-sm first:text-base font-medium tabular-nums", total >= 0 ? "text-emerald-600 dark:text-emerald-400" : "text-red-600 dark:text-red-400")}
               >
                 {formatCurrency(total, currency)}
               </dd>
@@ -148,8 +148,8 @@ export const standardFieldRenderers: Record<string, FieldRenderer> = {
     formatValue: (transaction: Transaction) => (
       <div
         className={cn(
-          { income: "text-green-500", expense: "text-red-500", other: "text-black" }[transaction.type || "other"],
-          "flex flex-col justify-end text-right text-lg"
+          { income: "text-emerald-600 dark:text-emerald-400", expense: "text-red-600 dark:text-red-400", other: "text-foreground" }[transaction.type || "other"],
+          "flex flex-col justify-end text-right text-lg tabular-nums"
         )}
       >
         {transaction.convertedTotal && transaction.convertedCurrencyCode
@@ -259,6 +259,7 @@ export function TransactionList({ transactions, fields = [] }: { transactions: T
       params.delete("ordering")
     }
     router.push(`/transactions?${params.toString()}`)
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sorting])
 
   const getSortIcon = (field: string) => {
@@ -298,9 +299,9 @@ export function TransactionList({ transactions, fields = [] }: { transactions: T
             <TableRow
               key={transaction.id}
               className={cn(
-                isTransactionIncomplete(fields, transaction) && "bg-yellow-50",
-                selectedIds.includes(transaction.id) && "bg-muted",
-                "cursor-pointer hover:bg-muted/50"
+                isTransactionIncomplete(fields, transaction) && "border-l-[3px] border-l-amber-400",
+                selectedIds.includes(transaction.id) && "bg-primary/5 ring-1 ring-primary/20",
+                "cursor-pointer"
               )}
               onClick={() => handleRowClick(transaction.id)}
             >

@@ -60,13 +60,11 @@ export const CurrencyConverterTool = ({
     fetchAndUpdateRates()
   }
 
-  useEffect(() => {
-    fetchAndUpdateRates()
-  }, [originalCurrencyCode, targetCurrencyCode, normalizedDateString, originalTotal])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchAndUpdateRates() }, [originalCurrencyCode, targetCurrencyCode, normalizedDateString, originalTotal])
 
-  useEffect(() => {
-    onChange?.(convertedTotal)
-  }, [convertedTotal])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { onChange?.(convertedTotal) }, [convertedTotal])
 
   if (!originalTotal || !originalCurrencyCode || !targetCurrencyCode || originalCurrencyCode === targetCurrencyCode) {
     return <></>
@@ -92,7 +90,7 @@ export const CurrencyConverterTool = ({
               value={convertedTotal}
               onChange={(e) => {
                 const newValue = parseFloat(e.target.value || "0")
-                !isNaN(newValue) && setConvertedTotal(Math.round(newValue * 100) / 100)
+                if (!isNaN(newValue)) { setConvertedTotal(Math.round(newValue * 100) / 100) }
               }}
               className="w-32 rounded-md border border-input px-2 py-1"
             />

@@ -40,30 +40,40 @@ export async function restoreBackupAction(
     const fileData = Buffer.from(fileBuffer)
     zip = await JSZip.loadAsync(fileData)
   } catch (error) {
-    return { success: false, error: "Bad zip archive: " + (error as Error).message }
+    return { success: false, error: "Ficheiro ZIP inválido ou corrompido" }
   }
 
-  // Check metadata and start restoring
+  // Validate backup structure BEFORE deleting any data
   try {
     const metadataFile = zip.file("data/metadata.json")
-    if (metadataFile) {
-      const metadataContent = await metadataFile.async("string")
-      try {
-        const metadata = JSON.parse(metadataContent)
-        if (!metadata.version || !SUPPORTED_BACKUP_VERSIONS.includes(metadata.version)) {
-          return {
-            success: false,
-            error: `Incompatible backup version: ${
-              metadata.version || "unknown"
-            }. Supported versions: ${SUPPORTED_BACKUP_VERSIONS.join(", ")}`,
-          }
-        }
-      } catch (error) {
-      }
-    } else {
+    if (!metadataFile) {
+      return { success: false, error: "Ficheiro de backup inválido: metadata.json em falta" }
     }
 
-    // Remove existing data
+    const metadataContent = await metadataFile.async("string")
+    let metadata: { version?: string }
+    try {
+      metadata = JSON.parse(metadataContent)
+    } catch {
+      return { success: false, error: "Ficheiro de backup inválido: metadata.json corrompido" }
+    }
+
+    if (!metadata.version || !SUPPORTED_BACKUP_VERSIONS.includes(metadata.version)) {
+      return {
+        success: false,
+        error: `Versão de backup incompatível: ${
+          metadata.version || "desconhecida"
+        }. Versões suportadas: ${SUPPORTED_BACKUP_VERSIONS.join(", ")}`,
+      }
+    }
+
+    // Verify at least one data file exists
+    const hasDataFiles = MODEL_BACKUP.some((backup) => zip.file(`data/${backup.filename}`) !== null)
+    if (!hasDataFiles) {
+      return { success: false, error: "Ficheiro de backup inválido: sem dados para restaurar" }
+    }
+
+    // Only delete AFTER validation passes
     if (REMOVE_EXISTING_DATA) {
       await cleanupUserTables(user.id)
       await fs.rm(userUploadsDirectory, { recursive: true, force: true })
@@ -128,7 +138,7 @@ export async function restoreBackupAction(
     } catch (error) {
       return {
         success: false,
-        error: `Error restoring uploaded files: ${error instanceof Error ? error.message : String(error)}`,
+        error: "Erro ao restaurar ficheiros anexados",
       }
     }
 
@@ -136,7 +146,7 @@ export async function restoreBackupAction(
   } catch (error) {
     return {
       success: false,
-      error: `Error restoring from backup: ${error instanceof Error ? error.message : String(error)}`,
+      error: "Erro ao restaurar backup",
     }
   }
 }

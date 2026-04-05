@@ -22,8 +22,8 @@ export function SidebarMenuItemWithHighlight({
   return (
     <SidebarMenuItem
       className={cn(
-        isActive && "bg-sidebar-accent text-sidebar-accent-foreground",
-        "font-medium rounded-md",
+        "font-medium rounded-lg transition-all duration-200",
+        isActive && "border-l-[3px] border-primary bg-primary/5 text-foreground",
         className
       )}
       {...props}
@@ -32,5 +32,3 @@ export function SidebarMenuItemWithHighlight({
     </SidebarMenuItem>
   )
 }
-
-// bg-primary text-primary-foreground

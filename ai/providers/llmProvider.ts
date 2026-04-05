@@ -18,7 +18,7 @@ export interface LLMSettings {
 export interface LLMRequest {
   prompt: string
   schema?: Record<string, unknown>
-  attachments?: any[]
+  attachments?: { contentType: string; base64: string }[]
 }
 
 export interface LLMResponse {
@@ -31,6 +31,7 @@ export interface LLMResponse {
 async function requestLLMUnified(config: LLMConfig, req: LLMRequest): Promise<LLMResponse> {
   try {
     const temperature = 0
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let model: any
     if (config.provider === "openai") {
       model = new ChatOpenAI({
@@ -60,7 +61,8 @@ async function requestLLMUnified(config: LLMConfig, req: LLMRequest): Promise<LL
 
     const structuredModel = model.withStructuredOutput(req.schema, { name: "transaction" })
 
-    let message_content: any = [{ type: "text", text: req.prompt }]
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const message_content: any[] = [{ type: "text", text: req.prompt }]
     if (req.attachments && req.attachments.length > 0) {
       const images = req.attachments.map((att) => ({
         type: "image_url",
@@ -78,7 +80,7 @@ async function requestLLMUnified(config: LLMConfig, req: LLMRequest): Promise<LL
       output: response,
       provider: config.provider,
     }
-  } catch (error: any) {
+  } catch (error: unknown) {
     return {
       output: {},
       provider: config.provider,

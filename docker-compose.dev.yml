@@ -1,0 +1,13 @@
+services:
+  postgres:
+    image: postgres:17-alpine
+    container_name: ledge_postgres
+    ports:
+      - "5433:5432"
+    environment:
+      - POSTGRES_USER=ledge
+      - POSTGRES_PASSWORD=ledge
+      - POSTGRES_DB=ledge
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    restart: unless-stopped

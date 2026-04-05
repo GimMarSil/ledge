@@ -38,11 +38,11 @@ export async function POST(request: NextRequest) {
     })
 
     if (!session.url) {
-      return NextResponse.json({ error: `Failed to create checkout session: ${session}` }, { status: 500 })
+      return NextResponse.json({ error: "Falha ao criar sessão de pagamento" }, { status: 500 })
     }
 
     return NextResponse.json({ session })
-  } catch (error) {
-    return NextResponse.json({ error: `Failed to create checkout session: ${error}` }, { status: 500 })
+  } catch {
+    return NextResponse.json({ error: "Falha ao criar sessão de pagamento" }, { status: 500 })
   }
 }

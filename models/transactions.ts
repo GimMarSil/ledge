@@ -21,6 +21,22 @@ export type TransactionData = {
   projectCode?: string | null
   issuedAt?: Date | string | null
   text?: string | null
+  // Campos fiscais portugueses
+  documentType?: string | null
+  documentNumber?: string | null
+  documentSeries?: string | null
+  nif?: string | null
+  customerNif?: string | null
+  subtotal?: number | null
+  vatAmount?: number | null
+  vatRate?: number | null
+  vatBreakdown?: Record<string, unknown>[] | null
+  atcud?: string | null
+  hashControl?: string | null
+  qrCode?: string | null
+  fiscalStatus?: string | null
+  withholdingRate?: number | null
+  withholdingAmount?: number | null
   [key: string]: unknown
 }
 
@@ -137,9 +153,10 @@ export const createTransaction = async (userId: string, data: TransactionData): 
 
   return await prisma.transaction.create({
     data: {
-      ...standard,
+      ...(standard as Prisma.TransactionUncheckedCreateInput),
       extra: extra,
       items: data.items as Prisma.InputJsonValue,
+      vatBreakdown: standard.vatBreakdown as Prisma.InputJsonValue,
       userId,
     },
   })
@@ -151,9 +168,10 @@ export const updateTransaction = async (id: string, userId: string, data: Transa
   return await prisma.transaction.update({
     where: { id, userId },
     data: {
-      ...standard,
+      ...(standard as Prisma.TransactionUncheckedUpdateInput),
       extra: extra,
       items: data.items ? (data.items as Prisma.InputJsonValue) : [],
+      vatBreakdown: standard.vatBreakdown as Prisma.InputJsonValue,
     },
   })
 }

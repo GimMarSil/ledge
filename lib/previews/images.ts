@@ -42,7 +42,7 @@ export async function resizeImage(
       contentType: "image/webp",
       resizedPath: outputPath,
     }
-  } catch (error) {
+  } catch {
     return {
       contentType: "image/unknown",
       resizedPath: origFilePath,

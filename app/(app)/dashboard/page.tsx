@@ -2,7 +2,6 @@ import DashboardDropZoneWidget from "@/components/dashboard/drop-zone-widget"
 import { StatsWidget } from "@/components/dashboard/stats-widget"
 import DashboardUnsortedWidget from "@/components/dashboard/unsorted-widget"
 import { WelcomeWidget } from "@/components/dashboard/welcome-widget"
-import { Separator } from "@/components/ui/separator"
 import { getCurrentUser } from "@/lib/auth"
 import config from "@/lib/config"
 import { getUnsortedFiles } from "@/models/files"
@@ -22,16 +21,17 @@ export default async function Dashboard({ searchParams }: { searchParams: Promis
   const settings = await getSettings(user.id)
 
   return (
-    <div className="flex flex-col gap-5 p-5 w-full max-w-7xl self-center">
-      <div className="flex flex-col sm:flex-row gap-5 items-stretch h-full">
-        <DashboardDropZoneWidget />
-
-        <DashboardUnsortedWidget files={unsortedFiles} />
+    <div className="flex flex-col gap-6 p-6 w-full max-w-7xl self-center animate-fade-up">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <DashboardDropZoneWidget />
+        </div>
+        <div className="lg:col-span-1">
+          <DashboardUnsortedWidget files={unsortedFiles} />
+        </div>
       </div>
 
       {settings.is_welcome_message_hidden !== "true" && <WelcomeWidget />}
-
-      <Separator />
 
       <StatsWidget filters={filters} />
     </div>

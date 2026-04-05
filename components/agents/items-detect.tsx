@@ -1,5 +1,5 @@
 import { formatCurrency } from "@/lib/utils"
-import { Save, Split } from "lucide-react"
+import { Split } from "lucide-react"
 import { Button } from "../ui/button"
 import { TransactionData } from "@/models/transactions"
 import { splitFileIntoItemsAction } from "@/app/(app)/unsorted/actions"
@@ -31,7 +31,7 @@ export const ItemsDetectTool = ({ file, data }: { file?: File; data: Transaction
       } else {
         showNotification({ code: "global.banner", message: result.error || "Falha ao dividir", type: "failed" })
       }
-    } catch (error) {
+    } catch {
       showNotification({ code: "global.banner", message: "Falha ao dividir itens", type: "failed" })
     } finally {
       setIsSplitting(false)
@@ -56,10 +56,10 @@ export const ItemsDetectTool = ({ file, data }: { file?: File; data: Transaction
               </div>
               {item.vat_rate != null && (
                 <div className="text-xs text-muted-foreground">
-                  IVA {item.vat_rate}%
+                  {`IVA ${item.vat_rate}%`}
                   {item.vat_amount != null && (
                     <span className="ml-1">
-                      ({formatCurrency((item.vat_amount || 0) * 100, item.currencyCode || data.currencyCode || "EUR")})
+                      ({formatCurrency((Number(item.vat_amount) || 0) * 100, item.currencyCode || data.currencyCode || "EUR")})
                     </span>
                   )}
                 </div>

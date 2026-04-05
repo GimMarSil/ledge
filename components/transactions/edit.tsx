@@ -52,12 +52,14 @@ export default function TransactionEditForm({
     issuedAt: transaction.issuedAt ? format(transaction.issuedAt, "yyyy-MM-dd") : "",
     note: transaction.note || "",
     items: transaction.items || [],
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    vat_breakdown: (transaction as any).vat_breakdown || null,
     ...extraFields.reduce(
       (acc, field) => {
         acc[field.code] = transaction.extra?.[field.code as keyof typeof transaction.extra] || ""
         return acc
       },
-      {} as Record<string, any>
+      {} as Record<string, string>
     ),
   })
 

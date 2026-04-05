@@ -48,7 +48,21 @@ export async function saveTransactionsAction(
 ): Promise<ActionState<Transaction>> {
   const user = await getCurrentUser()
   try {
-    const rows = JSON.parse(formData.get("rows") as string) as Record<string, unknown>[]
+    const rawRows = formData.get("rows")
+    if (!rawRows || typeof rawRows !== "string") {
+      return { success: false, error: "Dados em falta" }
+    }
+
+    let rows: Record<string, unknown>[]
+    try {
+      rows = JSON.parse(rawRows)
+    } catch {
+      return { success: false, error: "Dados inválidos" }
+    }
+
+    if (!Array.isArray(rows) || rows.length === 0) {
+      return { success: false, error: "Sem transações para importar" }
+    }
 
     for (const row of rows) {
       const transactionData: Record<string, unknown> = {}
@@ -69,6 +83,6 @@ export async function saveTransactionsAction(
 
     return { success: true }
   } catch (error) {
-    return { success: false, error: "Failed to save transactions: " + error }
+    return { success: false, error: "Erro ao guardar transações" }
   }
 }

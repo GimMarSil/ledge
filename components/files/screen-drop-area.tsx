@@ -19,11 +19,8 @@ export default function ScreenDropArea({ children }: { children: React.ReactNode
   const handleDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     e.stopPropagation()
-
-    // Check if the dragged items are files
     const items = e.dataTransfer.items
     if (!items) return
-
     let hasFiles = false
     for (const item of items) {
       if (item.kind === "file") {
@@ -32,7 +29,6 @@ export default function ScreenDropArea({ children }: { children: React.ReactNode
       }
     }
     if (!hasFiles) return
-
     dragCounter.current++
     if (dragCounter.current === 1) {
       setIsDragging(true)
@@ -48,7 +44,6 @@ export default function ScreenDropArea({ children }: { children: React.ReactNode
     e.preventDefault()
     e.stopPropagation()
     dragCounter.current--
-
     if (dragCounter.current === 0) {
       setIsDragging(false)
     }
@@ -58,8 +53,6 @@ export default function ScreenDropArea({ children }: { children: React.ReactNode
     async (e: React.DragEvent<HTMLDivElement>) => {
       e.preventDefault()
       e.stopPropagation()
-
-      // Reset counter and dragging state
       dragCounter.current = 0
       setIsDragging(false)
 
@@ -88,10 +81,10 @@ export default function ScreenDropArea({ children }: { children: React.ReactNode
               router.push("/unsorted")
             }
           } else {
-            setUploadError(result.error ? result.error : "Something went wrong...")
+            setUploadError(result.error ? result.error : "Algo correu mal...")
           }
         } catch (error) {
-          setUploadError(error instanceof Error ? error.message : "Something went wrong...")
+          setUploadError(error instanceof Error ? error.message : "Algo correu mal...")
         } finally {
           setIsUploading(false)
         }
@@ -100,7 +93,6 @@ export default function ScreenDropArea({ children }: { children: React.ReactNode
     [transactionId, router, showNotification]
   )
 
-  // Add event listeners to document body
   useEffect(() => {
     document.body.addEventListener("dragenter", handleDragEnter as unknown as EventListener)
     document.body.addEventListener("dragover", handleDragOver as unknown as EventListener)
@@ -121,39 +113,43 @@ export default function ScreenDropArea({ children }: { children: React.ReactNode
 
       {isDragging && (
         <div
-          className="fixed inset-0 bg-opacity-20 backdrop-blur-sm z-50 flex items-center justify-center"
+          className="fixed inset-0 bg-primary/5 backdrop-blur-sm z-50 flex items-center justify-center border-4 border-dashed border-primary"
           onDragEnter={handleDragEnter}
           onDragOver={handleDragOver}
           onDragLeave={handleDragLeave}
           onDrop={handleDrop}
         >
-          <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl text-center">
+          <div className="bg-card p-10 rounded-2xl shadow-2xl text-center border animate-scale-in">
             <CloudUpload className="h-16 w-16 mx-auto mb-4 text-primary" />
             <h3 className="text-xl font-semibold mb-2">
-              {transactionId ? "Drop Files to Add to Transaction" : "Drop Files to Upload"}
+              {transactionId ? "Largue ficheiros para adicionar à transação" : "Largue ficheiros para carregar"}
             </h3>
-            <p className="text-gray-600 dark:text-gray-400">Drop anywhere on the screen</p>
+            <p className="text-muted-foreground">Largue em qualquer lugar do ecrã</p>
           </div>
         </div>
       )}
 
       {isUploading && (
-        <div className="fixed inset-0 bg-opacity-20 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl text-center">
+        <div className="fixed inset-0 bg-background/50 backdrop-blur-sm z-50 flex items-center justify-center">
+          <div className="bg-card p-10 rounded-2xl shadow-2xl text-center border animate-scale-in">
             <Loader2 className="h-16 w-16 mx-auto mb-4 text-primary animate-spin" />
             <h3 className="text-xl font-semibold mb-2">
-              {transactionId ? "Adding files to transaction..." : "Uploading..."}
+              {transactionId ? "A adicionar ficheiros..." : "A carregar..."}
             </h3>
           </div>
         </div>
       )}
 
       {uploadError && (
-        <div className="fixed inset-0 bg-opacity-20 backdrop-blur-sm z-50 flex items-center justify-center">
-          <div className="bg-white dark:bg-gray-800 p-8 rounded-lg shadow-xl text-center">
-            <AlertCircle className="h-16 w-16 mx-auto mb-4 text-red-500" />
-            <h3 className="text-xl font-semibold mb-2">Upload Error</h3>
-            <p className="text-gray-600 dark:text-gray-400">{uploadError}</p>
+        <div
+          className="fixed inset-0 bg-background/50 backdrop-blur-sm z-50 flex items-center justify-center cursor-pointer"
+          onClick={() => setUploadError("")}
+        >
+          <div className="bg-card p-10 rounded-2xl shadow-2xl text-center border animate-scale-in">
+            <AlertCircle className="h-16 w-16 mx-auto mb-4 text-destructive" />
+            <h3 className="text-xl font-semibold mb-2">Erro ao carregar</h3>
+            <p className="text-muted-foreground">{uploadError}</p>
+            <p className="text-xs text-muted-foreground mt-3">Clique para fechar</p>
           </div>
         </div>
       )}

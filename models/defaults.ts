@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/db"
+import { createDefaultTaxTables } from "./tax-tables"
 
 export const DEFAULT_PROMPT_ANALYSE_NEW_FILE = `És um assistente de contabilidade e análise de faturas portuguesas. Extrai a seguinte informação da fatura fornecida:
 
@@ -30,7 +31,13 @@ REGRAS IMPORTANTES:
 - Devolve apenas um objeto
 - Extrai o NIF/NIPC (número de identificação fiscal) do fornecedor se disponível
 - Se a fatura tiver tabela de resumo de IVA, usa esses valores para o vat_breakdown
-- Verifica que: subtotal + vat = total (tolerância de 0.01€ por arredondamentos)`
+- Verifica que: subtotal + vat = total (tolerância de 0.01€ por arredondamentos)
+
+CLASSIFICAÇÃO DE DOCUMENTO:
+- Identifica o tipo de documento: FT (Fatura), FR (Fatura-Recibo), NC (Nota de Crédito), ND (Nota de Débito), RC (Recibo), OR (Orçamento)
+- Extrai o número do documento/fatura exatamente como aparece impresso
+- Se existir ATCUD (código único de documento), extrai-o também
+- Se não for possível determinar o tipo, usa FT para faturas e RC para recibos/talões`
 
 export const DEFAULT_SETTINGS = [
   {
@@ -432,10 +439,10 @@ export const DEFAULT_FIELDS = [
     name: "NIF do Fornecedor",
     type: "string",
     llm_prompt: "NIF ou NIPC (número de identificação fiscal) do fornecedor, formato português com 9 dígitos",
-    isVisibleInList: false,
+    isVisibleInList: true,
     isVisibleInAnalysis: true,
     isRequired: false,
-    isExtra: true,
+    isExtra: false,
   },
   {
     code: "subtotal",
@@ -445,37 +452,57 @@ export const DEFAULT_FIELDS = [
     isVisibleInList: false,
     isVisibleInAnalysis: true,
     isRequired: false,
-    isExtra: true,
+    isExtra: false,
   },
   {
-    code: "vat",
+    code: "vatAmount",
     name: "Total IVA",
     type: "number",
     llm_prompt: "valor total do IVA na moeda da fatura (soma de todos os montantes de IVA de todas as taxas)",
     isVisibleInList: false,
     isVisibleInAnalysis: true,
     isRequired: false,
-    isExtra: true,
+    isExtra: false,
   },
   {
-    code: "vat_rate",
+    code: "vatRate",
     name: "Taxa de IVA",
     type: "number",
     llm_prompt: "taxa de IVA predominante em percentagem. Se houver taxas mistas (ex: 6% e 23% na mesma fatura), indica a taxa mais alta. Em Portugal Continental: 6%, 13% ou 23%. Açores: 4%, 9%, 18%. Madeira: 5%, 12%, 22%",
     isVisibleInList: false,
-    isVisibleInAnalysis: false,
+    isVisibleInAnalysis: true,
     isRequired: false,
-    isExtra: true,
+    isExtra: false,
   },
   {
-    code: "vat_breakdown",
+    code: "vatBreakdown",
     name: "Desdobramento IVA",
     type: "string",
     llm_prompt: 'desdobramento do IVA por taxa como array JSON. Exemplo: [{"rate":23,"base":100.00,"vat":23.00},{"rate":6,"base":50.00,"vat":3.00}]. Cada objeto tem: rate (taxa %), base (base tributável), vat (valor IVA). Se a fatura tiver resumo de IVA, usa esses valores. Se não, calcula a partir dos itens',
     isVisibleInList: false,
     isVisibleInAnalysis: true,
     isRequired: false,
-    isExtra: true,
+    isExtra: false,
+  },
+  {
+    code: "documentType",
+    name: "Tipo de Documento",
+    type: "string",
+    llm_prompt: "",
+    isVisibleInList: true,
+    isVisibleInAnalysis: true,
+    isRequired: false,
+    isExtra: false,
+  },
+  {
+    code: "documentNumber",
+    name: "Nº Documento",
+    type: "string",
+    llm_prompt: "",
+    isVisibleInList: true,
+    isVisibleInAnalysis: true,
+    isRequired: false,
+    isExtra: false,
   },
   {
     code: "text",
@@ -542,6 +569,9 @@ export async function createUserDefaults(userId: string) {
       create: { ...setting, userId },
     })
   }
+
+  // Default tax tables (IVA português)
+  await createDefaultTaxTables(userId)
 }
 
 export async function isDatabaseEmpty(userId: string) {

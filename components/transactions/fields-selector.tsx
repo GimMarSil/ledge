@@ -31,7 +31,7 @@ export function ColumnSelector({ fields, onChange }: { fields: Field[]; onChange
       } else {
         router.refresh()
       }
-    } catch (error) {
+    } catch {
     } finally {
       setIsLoading(false)
     }

@@ -8,12 +8,16 @@ import { transactionFormSchema } from "@/forms/transactions"
 import { ActionState } from "@/lib/actions"
 import { getCurrentUser, isAiBalanceExhausted, isSubscriptionExpired } from "@/lib/auth"
 import {
+  fullPathForFile,
   getDirectorySize,
   getTransactionFileUploadPath,
   getUserUploadsDirectory,
   safePathJoin,
   unsortedFilePath,
 } from "@/lib/files"
+import { extractQRCodeFromFile } from "@/lib/fiscal/qrcode-extract"
+import { generateQRCodeString } from "@/lib/fiscal/qrcode"
+import { mergeQRCodeWithAnalysis, qrCodeDataToTransactionFields } from "@/lib/fiscal/qrcode-to-transaction"
 import { DEFAULT_PROMPT_ANALYSE_NEW_FILE } from "@/models/defaults"
 import { createFile, deleteFile, getFileById, updateFile } from "@/models/files"
 import { createTransaction, TransactionData, updateTransactionFiles } from "@/models/transactions"
@@ -51,6 +55,22 @@ export async function analyzeFileAction(
     }
   }
 
+  // Step 1: Tentar extrair QR code do ficheiro (grátis, rápido, determinístico)
+  let qrFields: Partial<TransactionData> = {}
+  let qrRawString = ""
+  try {
+    const filePath = fullPathForFile(user, file)
+    const qrData = await extractQRCodeFromFile(filePath, file.mimetype)
+    if (qrData) {
+      qrRawString = generateQRCodeString(qrData)
+      qrFields = qrCodeDataToTransactionFields(qrData, qrRawString)
+      console.log("QR code e-fatura extraído:", qrFields)
+    }
+  } catch (error) {
+    console.warn("Extração de QR code falhou (continuando com LLM):", error)
+  }
+
+  // Step 2: Carregar attachments para análise LLM
   let attachments: AnalyzeAttachment[] = []
   try {
     attachments = await loadAttachmentsForAI(user, file)
@@ -58,16 +78,26 @@ export async function analyzeFileAction(
     return { success: false, error: "Failed to retrieve files: " + error }
   }
 
-  const prompt = buildLLMPrompt(
+  // Step 3: Construir prompt (enriquecido com dados QR se disponíveis)
+  let prompt = buildLLMPrompt(
     settings.prompt_analyse_new_file || DEFAULT_PROMPT_ANALYSE_NEW_FILE,
     fields,
     categories,
     projects
   )
 
-  const schema = fieldsToJsonSchema(fields)
+  if (Object.keys(qrFields).length > 0) {
+    prompt += `\n\nDados já extraídos automaticamente do QR code da fatura (usar como referência fidedigna para campos fiscais):\n- NIF emitente: ${qrFields.nif || "N/A"}\n- Tipo documento: ${qrFields.documentType || "N/A"}\n- Nº documento: ${qrFields.documentNumber || "N/A"}\n- Data: ${qrFields.issuedAt || "N/A"}\n- Total: ${qrFields.total || "N/A"}\n- IVA: ${qrFields.vatAmount || "N/A"}\n- ATCUD: ${qrFields.atcud || "N/A"}`
+  }
 
+  // Step 4: Análise LLM
+  const schema = fieldsToJsonSchema(fields)
   const results = await analyzeTransaction(prompt, schema, attachments, file.id, user.id)
+
+  // Step 5: Merge QR data com output LLM (QR ganha nos campos fiscais)
+  if (results.success && results.data && Object.keys(qrFields).length > 0) {
+    results.data.output = mergeQRCodeWithAnalysis(qrFields, results.data.output) as Record<string, string>
+  }
 
   if (results.data?.tokensUsed && results.data.tokensUsed > 0) {
     await updateUser(user.id, { aiBalance: { decrement: 1 } })

@@ -23,12 +23,13 @@ interface CrudProps<T> {
   onEdit?: (id: string, data: Partial<T>) => Promise<{ success: boolean; error?: string }>
 }
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 export function CrudTable<T extends { [key: string]: any }>({ items, columns, onDelete, onAdd, onEdit }: CrudProps<T>) {
   const [isAdding, setIsAdding] = useState(false)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [newItem, setNewItem] = useState<Partial<T>>(itemDefaults(columns))
   const [editingItem, setEditingItem] = useState<Partial<T>>(itemDefaults(columns))
-  const [optimisticItems, addOptimisticItem] = useOptimistic(items, (state, newItem: T) => [...state, newItem])
+  const [optimisticItems] = useOptimistic(items, (state, newItem: T) => [...state, newItem])
 
   const FormCell = (item: T, column: CrudColumn<T>) => {
     if (column.type === "checkbox") {
@@ -226,7 +227,7 @@ export function CrudTable<T extends { [key: string]: any }>({ items, columns, on
       } else {
         alert(result.error)
       }
-    } catch (error) {
+    } catch {
     }
   }
 
@@ -240,7 +241,7 @@ export function CrudTable<T extends { [key: string]: any }>({ items, columns, on
       } else {
         alert(result.error)
       }
-    } catch (error) {
+    } catch {
     }
   }
 
@@ -255,7 +256,7 @@ export function CrudTable<T extends { [key: string]: any }>({ items, columns, on
       if (!result.success) {
         alert(result.error)
       }
-    } catch (error) {
+    } catch {
     }
   }
 

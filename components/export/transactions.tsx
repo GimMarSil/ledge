@@ -42,13 +42,11 @@ export function ExportTransactionsDialog({
   )
   const [includeAttachments, setIncludeAttachments] = useState(true)
   const { isLoading, startProgress, progress } = useProgress({
-    onError: (error) => {
-    },
+    onError: () => {},
   })
 
   const { download, isDownloading } = useDownload({
-    onError: (error) => {
-    },
+    onError: () => {},
   })
 
   const handleSubmit = async () => {
@@ -67,7 +65,7 @@ export function ExportTransactionsDialog({
         progressId: progressId || "",
       }).toString()}`
       await download(exportUrl, "transactions.zip")
-    } catch (error) {
+    } catch {
     }
   }
 

@@ -54,9 +54,10 @@ export const transactionFormSchema = z
         if (!val || val.trim() === '') return []
         try {
           return JSON.parse(val)
-        } catch (e) {
+        } catch {
           throw new z.ZodError([{ message: "Invalid items JSON", path: ["items"], code: z.ZodIssueCode.custom }])
         }
       }),
+    vat_breakdown: z.any().optional(),
   })
   .catchall(z.string())

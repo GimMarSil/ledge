@@ -51,6 +51,13 @@ export interface InvoiceFormData {
   subtotalLabel: string
   summarySubtotalLabel: string
   summaryTotalLabel: string
+  // Campos fiscais portugueses
+  documentType?: string
+  issuerNif?: string
+  customerNif?: string
+  atcud?: string
+  hashControl?: string
+  exemptionReason?: string
 }
 
 interface InvoicePageProps {

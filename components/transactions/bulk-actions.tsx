@@ -33,11 +33,16 @@ export function BulkActionsMenu({ selectedIds, onActionComplete }: BulkActionsMe
   }
 
   return (
-    <div className="fixed bottom-4 right-4 z-50">
-      <Button variant="destructive" className="min-w-48 gap-2" disabled={isLoading} onClick={handleDelete}>
-        <Trash2 className="h-4 w-4" />
-        Eliminar {selectedIds.length} transações
-      </Button>
+    <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 animate-fade-up">
+      <div className="flex items-center gap-4 bg-card shadow-2xl rounded-2xl px-6 py-4 border">
+        <span className="text-sm font-medium text-muted-foreground tabular-nums">
+          {selectedIds.length} selecionada{selectedIds.length !== 1 ? "s" : ""}
+        </span>
+        <Button variant="destructive" className="gap-2" disabled={isLoading} onClick={handleDelete}>
+          <Trash2 className="h-4 w-4" />
+          Eliminar
+        </Button>
+      </div>
     </div>
   )
 }

@@ -1,10 +1,11 @@
+import { Prisma } from "@/prisma/client"
 import { prisma } from "@/lib/db"
 
 export const getOrCreateProgress = async (
   userId: string,
   id: string,
   type: string | null = null,
-  data: any = null,
+  data: Prisma.InputJsonValue | null = null,
   total: number = 0
 ) => {
   return await prisma.progress.upsert({
@@ -13,7 +14,7 @@ export const getOrCreateProgress = async (
       id,
       user: { connect: { id: userId } },
       type: type || "unknown",
-      data,
+      data: data ?? Prisma.JsonNull,
       total,
     },
     update: {
@@ -31,7 +32,7 @@ export const getProgressById = async (userId: string, id: string) => {
 export const updateProgress = async (
   userId: string,
   id: string,
-  fields: { current?: number; total?: number; data?: any }
+  fields: { current?: number; total?: number; data?: Prisma.InputJsonValue }
 ) => {
   return await prisma.progress.updateMany({
     where: { id, userId },

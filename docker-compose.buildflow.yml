@@ -1,0 +1,54 @@
+# Docker Compose para deploy como módulo BuildFlow
+# Usar no servidor BuildFlow (77.42.26.248)
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: buildflow_despesas_fiscal
+    ports:
+      - "7331:7331"
+    environment:
+      - NODE_ENV=production
+      - PORT=7331
+      - SELF_HOSTED_MODE=false
+      - UPLOAD_PATH=/app/data/uploads
+      - BUILDFLOW_MODULE=true
+      - DATABASE_URL=postgresql://admin:jO0rFwGR2ykmAJpOImll5Vnts7RlB95j@postgres:5432/client_despesas_fiscal
+    env_file:
+      - .env.production
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    depends_on:
+      - postgres
+    networks:
+      - buildflow_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "100M"
+        max-file: "3"
+
+  postgres:
+    image: postgres:17-alpine
+    container_name: despesas_fiscal_postgres
+    environment:
+      - POSTGRES_USER=admin
+      - POSTGRES_PASSWORD=jO0rFwGR2ykmAJpOImll5Vnts7RlB95j
+      - POSTGRES_DB=client_despesas_fiscal
+    volumes:
+      - ./pgdata:/var/lib/postgresql/data
+    restart: unless-stopped
+    networks:
+      - buildflow_network
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "50M"
+        max-file: "3"
+
+networks:
+  buildflow_network:
+    driver: bridge

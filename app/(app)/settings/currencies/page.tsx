@@ -14,15 +14,15 @@ export default async function CurrenciesSettingsPage() {
 
   return (
     <div className="container">
-      <h1 className="text-2xl font-bold mb-2">Currencies</h1>
-      <p className="text-sm text-gray-500 mb-6 max-w-prose">
-        Custom currencies would not be automatically converted but you still can have them.
+      <h1 className="text-2xl font-bold mb-2">Moedas</h1>
+      <p className="text-sm text-muted-foreground mb-6 max-w-prose">
+        Moedas personalizadas não serão convertidas automaticamente mas pode adicioná-las para registo manual.
       </p>
       <CrudTable
         items={currenciesWithActions}
         columns={[
-          { key: "code", label: "Code", editable: true },
-          { key: "name", label: "Name", editable: true },
+          { key: "code", label: "Código", editable: true },
+          { key: "name", label: "Nome", editable: true },
         ]}
         onDelete={async (code) => {
           "use server"

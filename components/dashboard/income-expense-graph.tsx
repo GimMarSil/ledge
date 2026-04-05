@@ -4,8 +4,17 @@ import { formatCurrency, formatPeriodLabel } from "@/lib/utils"
 import { DetailedTimeSeriesData } from "@/models/stats"
 import { addDays, endOfMonth, format, startOfMonth } from "date-fns"
 import { useRouter } from "next/navigation"
-import { useEffect, useRef, useState } from "react"
-import { IncomeExpenceGraphTooltip } from "./income-expense-graph-tooltip"
+import { useCallback, useMemo } from "react"
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  Cell,
+} from "recharts"
 
 interface IncomeExpenseGraphProps {
   data: DetailedTimeSeriesData[]
@@ -14,178 +23,136 @@ interface IncomeExpenseGraphProps {
 
 export function IncomeExpenseGraph({ data, defaultCurrency }: IncomeExpenseGraphProps) {
   const router = useRouter()
-  const scrollContainerRef = useRef<HTMLDivElement>(null)
-  const [tooltip, setTooltip] = useState<{
-    data: DetailedTimeSeriesData | null
-    position: { x: number; y: number }
-    visible: boolean
-  }>({
-    data: null,
-    position: { x: 0, y: 0 },
-    visible: false,
-  })
 
-  // Auto-scroll to the right to show latest data
-  useEffect(() => {
-    if (scrollContainerRef.current) {
-      scrollContainerRef.current.scrollLeft = scrollContainerRef.current.scrollWidth
-    }
-  }, [data])
+  const chartData = useMemo(
+    () =>
+      data.map((item) => ({
+        ...item,
+        label: formatPeriodLabel(item.period, item.date),
+        negExpenses: -item.expenses,
+      })),
+    [data]
+  )
 
-  const handleBarHover = (item: DetailedTimeSeriesData, event: React.MouseEvent) => {
-    const rect = event.currentTarget.getBoundingClientRect()
-    const containerRect = scrollContainerRef.current?.getBoundingClientRect()
+  const handleBarClick = useCallback(
+    (item: DetailedTimeSeriesData, type: "income" | "expense") => {
+      const isDailyPeriod = item.period.includes("-") && item.period.split("-").length === 3
+      let dateFrom: string
+      let dateTo: string
 
-    setTooltip({
-      data: item,
-      position: {
-        x: rect.left + rect.width / 2,
-        y: containerRect ? containerRect.top + containerRect.height / 2 : rect.top,
-      },
-      visible: true,
-    })
-  }
+      if (isDailyPeriod) {
+        const date = new Date(item.period)
+        dateFrom = item.period
+        dateTo = format(addDays(date, 1), "yyyy-MM-dd")
+      } else {
+        const [year, month] = item.period.split("-")
+        const monthDate = new Date(parseInt(year), parseInt(month) - 1, 1)
+        dateFrom = format(startOfMonth(monthDate), "yyyy-MM-dd")
+        dateTo = format(addDays(endOfMonth(monthDate), 1), "yyyy-MM-dd")
+      }
 
-  const handleBarLeave = () => {
-    setTooltip((prev) => ({ ...prev, visible: false }))
-  }
-
-  const handleBarClick = (item: DetailedTimeSeriesData, type: "income" | "expense") => {
-    // Calculate date range for the period
-    const isDailyPeriod = item.period.includes("-") && item.period.split("-").length === 3
-
-    let dateFrom: string
-    let dateTo: string
-
-    if (isDailyPeriod) {
-      // Daily period: use the exact date, add 1 day to dateTo
-      const date = new Date(item.period)
-      dateFrom = item.period // YYYY-MM-DD format
-      dateTo = format(addDays(date, 1), "yyyy-MM-dd")
-    } else {
-      // Monthly period: use first and last day of the month, add 1 day to dateTo
-      const [year, month] = item.period.split("-")
-      const monthDate = new Date(parseInt(year), parseInt(month) - 1, 1)
-
-      dateFrom = format(startOfMonth(monthDate), "yyyy-MM-dd")
-      dateTo = format(addDays(endOfMonth(monthDate), 1), "yyyy-MM-dd")
-    }
-
-    // Build URL parameters
-    const params = new URLSearchParams({
-      type,
-      dateFrom,
-      dateTo,
-    })
-
-    // Navigate to transactions page with filters
-    router.push(`/transactions?${params.toString()}`)
-  }
+      router.push(`/transactions?${new URLSearchParams({ type, dateFrom, dateTo }).toString()}`)
+    },
+    [router]
+  )
 
   if (!data.length) {
     return (
-      <div className="w-full h-96 flex items-center justify-center text-muted-foreground">
-        No data available for the selected period
+      <div className="w-full h-80 flex items-center justify-center text-muted-foreground rounded-xl border bg-card">
+        Sem dados para o período selecionado
       </div>
     )
   }
 
-  const maxIncome = Math.max(...data.map((d) => d.income))
-  const maxExpense = Math.max(...data.map((d) => d.expenses))
-  const maxValue = Math.max(maxIncome, maxExpense)
-
+  const maxValue = Math.max(...data.map((d) => Math.max(d.income, d.expenses)))
   if (maxValue === 0) {
     return (
-      <div className="w-full h-96 flex items-center justify-center text-muted-foreground">
-        No transactions found for the selected period
+      <div className="w-full h-80 flex items-center justify-center text-muted-foreground rounded-xl border bg-card">
+        Sem transações para o período selecionado
+      </div>
+    )
+  }
+
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const CustomTooltip = ({ active, payload, label }: any) => {
+    if (!active || !payload || !payload.length) return null
+
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const incomeVal = payload.find((p: any) => p.dataKey === "income")?.value || 0
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const expenseVal = Math.abs(payload.find((p: any) => p.dataKey === "negExpenses")?.value || 0)
+
+    return (
+      <div className="bg-card border rounded-xl shadow-lg p-4 min-w-[200px]">
+        <p className="font-semibold text-sm mb-2">{label}</p>
+        {incomeVal > 0 && (
+          <div className="flex justify-between items-center gap-4">
+            <span className="text-sm text-muted-foreground">Receitas</span>
+            <span className="text-sm font-bold text-emerald-600 dark:text-emerald-400 tabular-nums">
+              {formatCurrency(incomeVal, defaultCurrency)}
+            </span>
+          </div>
+        )}
+        {expenseVal > 0 && (
+          <div className="flex justify-between items-center gap-4">
+            <span className="text-sm text-muted-foreground">Despesas</span>
+            <span className="text-sm font-bold text-red-600 dark:text-red-400 tabular-nums">
+              {formatCurrency(expenseVal, defaultCurrency)}
+            </span>
+          </div>
+        )}
       </div>
     )
   }
 
   return (
-    <div className="w-full h-[400px]">
-      {/* Chart container with horizontal scroll */}
-      <div ref={scrollContainerRef} className="relative h-full overflow-x-auto">
-        <div className="h-full flex flex-col" style={{ minWidth: `${Math.max(600, data.length * 94)}px` }}>
-          {/* Income section (top half) */}
-          <div className="h-1/2 flex justify-center gap-1 px-2">
-            {data.map((item, index) => {
-              const incomeHeight = maxValue > 0 ? (item.income / maxValue) * 100 : 0
-
-              return (
-                <div
-                  key={`income-${item.period}`}
-                  className="flex-1 min-w-[90px] h-full flex flex-col justify-end items-center cursor-pointer"
-                  onMouseEnter={(e) => handleBarHover(item, e)}
-                  onMouseLeave={handleBarLeave}
-                  onClick={() => item.income > 0 && handleBarClick(item, "income")}
-                >
-                  {/* Period label above income bars */}
-                  <div className="text-sm font-bold text-gray-700 break-words mb-2 text-center">
-                    {formatPeriodLabel(item.period, item.date)}
-                  </div>
-
-                  {item.income > 0 && (
-                    <>
-                      {/* Income amount label */}
-                      <div className="text-xs font-semibold text-green-600 mb-1 break-all text-center">
-                        {formatCurrency(item.income, defaultCurrency)}
-                      </div>
-                      {/* Income bar growing upward from bottom */}
-                      <div
-                        className="w-full bg-gradient-to-t from-green-500 via-green-400 to-emerald-300 border border-green-500/50 rounded-t-lg shadow-sm hover:shadow-md transition-shadow duration-200 min-w-full"
-                        style={{ height: `${incomeHeight}%` }}
-                      />
-                    </>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-
-          {/* X-axis line (center) */}
-          <div className="w-full border-t-2 border-gray-600" />
-
-          {/* Expense section (bottom half) */}
-          <div className="h-1/2 flex justify-center gap-1 px-2">
-            {data.map((item, index) => {
-              const expenseHeight = maxValue > 0 ? (item.expenses / maxValue) * 100 : 0
-
-              return (
-                <div
-                  key={`expense-${item.period}`}
-                  className="flex-1 min-w-[90px] h-full flex flex-col justify-start items-center cursor-pointer"
-                  onMouseEnter={(e) => handleBarHover(item, e)}
-                  onMouseLeave={handleBarLeave}
-                  onClick={() => item.expenses > 0 && handleBarClick(item, "expense")}
-                >
-                  {item.expenses > 0 && (
-                    <>
-                      {/* Expense bar growing downward from top */}
-                      <div
-                        className="w-full bg-gradient-to-b from-red-500 via-red-400 to-rose-300 border border-red-500/50 rounded-b-lg shadow-sm hover:shadow-md transition-shadow duration-200 min-w-full"
-                        style={{ height: `${expenseHeight}%` }}
-                      />
-                      {/* Expense amount label */}
-                      <div className="text-xs font-semibold text-red-600 mt-1 break-all text-center">
-                        {formatCurrency(item.expenses, defaultCurrency)}
-                      </div>
-                    </>
-                  )}
-                </div>
-              )
-            })}
-          </div>
-        </div>
-      </div>
-
-      {/* Tooltip */}
-      <IncomeExpenceGraphTooltip
-        data={tooltip.data}
-        defaultCurrency={defaultCurrency}
-        position={tooltip.position}
-        visible={tooltip.visible}
-      />
+    <div className="w-full rounded-xl border bg-card p-4">
+      <ResponsiveContainer width="100%" height={360}>
+        <BarChart data={chartData} margin={{ top: 20, right: 20, left: 20, bottom: 5 }}>
+          <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+          <XAxis
+            dataKey="label"
+            tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+            axisLine={{ stroke: "hsl(var(--border))" }}
+            tickLine={false}
+          />
+          <YAxis
+            tick={{ fontSize: 12, fill: "hsl(var(--muted-foreground))" }}
+            axisLine={false}
+            tickLine={false}
+            tickFormatter={(value) => {
+              const abs = Math.abs(value)
+              if (abs >= 1000) return `${(abs / 1000).toFixed(0)}k`
+              return `${abs}`
+            }}
+          />
+          <Tooltip content={<CustomTooltip />} cursor={{ fill: "hsl(var(--muted))", opacity: 0.3 }} />
+          <Bar
+            dataKey="income"
+            radius={[6, 6, 0, 0]}
+            maxBarSize={48}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onClick={(data: any) => data.income > 0 && handleBarClick(data, "income")}
+            cursor="pointer"
+          >
+            {chartData.map((_, index) => (
+              <Cell key={`income-${index}`} fill="hsl(160, 84%, 39%)" />
+            ))}
+          </Bar>
+          <Bar
+            dataKey="negExpenses"
+            radius={[0, 0, 6, 6]}
+            maxBarSize={48}
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            onClick={(data: any) => data.expenses > 0 && handleBarClick(data, "expense")}
+            cursor="pointer"
+          >
+            {chartData.map((_, index) => (
+              <Cell key={`expense-${index}`} fill="hsl(0, 72%, 51%)" />
+            ))}
+          </Bar>
+        </BarChart>
+      </ResponsiveContainer>
     </div>
   )
 }

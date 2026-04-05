@@ -9,12 +9,12 @@ export default function MobileMenu({ unsortedFilesCount }: { unsortedFilesCount:
   const { toggleSidebar } = useSidebar()
 
   return (
-    <menu className="flex flex-row gap-2 p-2 items-center justify-between fixed top-0 left-0 w-full z-50 border-b-2 border-solid bg-background md:hidden">
-      <Avatar className="h-10 w-10 rounded-lg cursor-pointer" onClick={toggleSidebar}>
+    <menu className="flex flex-row gap-2 p-3 items-center justify-between fixed top-0 left-0 w-full z-50 border-b bg-background/80 backdrop-blur-xl shadow-sm md:hidden">
+      <Avatar className="h-9 w-9 rounded-lg cursor-pointer" onClick={toggleSidebar}>
         <AvatarImage src="/logo/logo.svg" />
         <AvatarFallback className="rounded-lg">AI</AvatarFallback>
       </Avatar>
-      <Link href="/" className="text-lg font-bold">
+      <Link href="/" className="text-lg font-bold text-brand-gradient">
         {config.app.title}
       </Link>
       <Link

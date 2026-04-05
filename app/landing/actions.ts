@@ -30,7 +30,7 @@ export async function subscribeToNewsletterAction(email: string) {
     await sendNewsletterWelcomeEmail(email)
 
     return { success: true }
-  } catch (error) {
+  } catch {
     return { error: "Failed to subscribe. Please try again later." }
   }
 }

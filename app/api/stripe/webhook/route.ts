@@ -21,7 +21,7 @@ export async function POST(request: Request) {
 
   try {
     event = stripeClient.webhooks.constructEvent(body, signature, config.stripe.webhookSecret)
-  } catch (err) {
+  } catch {
     return new NextResponse("Webhook signature verification failed", { status: 400 })
   }
 
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
     }
 
     return new NextResponse("Webhook processed successfully", { status: 200 })
-  } catch (error) {
+  } catch {
     return new NextResponse("Webhook processing failed", { status: 500 })
   }
 }

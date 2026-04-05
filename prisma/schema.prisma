@@ -12,8 +12,8 @@ datasource db {
 }
 
 model User {
-  id                  String        @id @default(uuid()) @db.Uuid
-  email               String        @unique
+  id                  String           @id @default(uuid()) @db.Uuid
+  email               String           @unique
   name                String
   avatar              String?
   settings            Setting[]
@@ -23,23 +23,32 @@ model User {
   files               File[]
   currencies          Currency[]
   transactions        Transaction[]
-  createdAt           DateTime      @default(now()) @map("created_at")
-  updatedAt           DateTime      @updatedAt @map("updated_at")
-  stripeCustomerId    String?       @map("stripe_customer_id")
-  membershipPlan      String?       @map("membership_plan")
-  membershipExpiresAt DateTime?     @map("membership_expires_at")
-  emailVerified       Boolean       @default(false) @map("is_email_verified")
-  storageUsed         Int           @default(0) @map("storage_used")
-  storageLimit        Int           @default(-1) @map("storage_limit")
-  aiBalance           Int           @default(0) @map("ai_balance")
-  businessName        String?       @map("business_name")
-  businessAddress     String?       @map("business_address")
-  businessBankDetails String?       @map("business_bank_details")
-  businessLogo        String?       @map("business_logo")
+  createdAt           DateTime         @default(now()) @map("created_at")
+  updatedAt           DateTime         @updatedAt @map("updated_at")
+  stripeCustomerId    String?          @map("stripe_customer_id")
+  membershipPlan      String?          @map("membership_plan")
+  membershipExpiresAt DateTime?        @map("membership_expires_at")
+  emailVerified       Boolean          @default(false) @map("is_email_verified")
+  storageUsed         Int              @default(0) @map("storage_used")
+  storageLimit        Int              @default(-1) @map("storage_limit")
+  aiBalance           Int              @default(0) @map("ai_balance")
+  businessName        String?          @map("business_name")
+  businessAddress     String?          @map("business_address")
+  businessBankDetails String?          @map("business_bank_details")
+  businessLogo        String?          @map("business_logo")
+  businessNif         String?          @map("business_nif")
+  businessTaxRegime   String?          @map("business_tax_regime")
+  businessActivity    String?          @map("business_activity")
+  tenantId            String?          @map("tenant_id")
+  externalId          String?          @unique @map("external_id")        // ControlHub user ID (for SSO mapping)
+  externalTenantId    String?          @map("external_tenant_id")          // ControlHub tenant ID
   accounts            Account[]
   sessions            Session[]
   appData             AppData[]
   progress            Progress[]
+  documentSeries      DocumentSeries[]
+  fiscalEntities      FiscalEntity[]
+  taxTables           TaxTable[]
 
   @@map("users")
 }
@@ -191,6 +200,22 @@ model Transaction {
   createdAt             DateTime  @default(now()) @map("created_at")
   updatedAt             DateTime  @updatedAt @map("updated_at")
   text                  String?
+  // Campos fiscais portugueses
+  documentType          String?   @map("document_type")
+  documentNumber        String?   @map("document_number")
+  documentSeries        String?   @map("document_series")
+  nif                   String?
+  customerNif           String?   @map("customer_nif")
+  subtotal              Int?
+  vatAmount             Int?      @map("vat_amount")
+  vatRate               Decimal?  @map("vat_rate")
+  vatBreakdown          Json?     @map("vat_breakdown")
+  atcud                 String?
+  hashControl           String?   @map("hash_control")
+  qrCode                String?   @map("qr_code")
+  fiscalStatus          String?   @default("draft") @map("fiscal_status")
+  withholdingRate       Decimal?  @map("withholding_rate")
+  withholdingAmount     Int?      @map("withholding_amount")
 
   @@index([userId])
   @@index([projectCode])
@@ -199,6 +224,10 @@ model Transaction {
   @@index([name])
   @@index([merchant])
   @@index([total])
+  @@index([documentType])
+  @@index([documentNumber])
+  @@index([nif])
+  @@index([fiscalStatus])
   @@map("transactions")
 }
 
@@ -236,4 +265,61 @@ model Progress {
 
   @@index([userId])
   @@map("progress")
+}
+
+model DocumentSeries {
+  id               String   @id @default(uuid()) @db.Uuid
+  userId           String   @map("user_id") @db.Uuid
+  user             User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  documentType     String   @map("document_type")
+  series           String   @default("A")
+  year             Int
+  lastNumber       Int      @default(0) @map("last_number")
+  atValidationCode String?  @map("at_validation_code")
+  isActive         Boolean  @default(true) @map("is_active")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@unique([userId, documentType, series, year])
+  @@index([userId])
+  @@map("document_series")
+}
+
+model FiscalEntity {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  nif        String
+  name       String
+  type       String
+  address    String?
+  city       String?
+  postalCode String?  @map("postal_code")
+  country    String   @default("PT")
+  email      String?
+  phone      String?
+  createdAt  DateTime @default(now()) @map("created_at")
+  updatedAt  DateTime @updatedAt @map("updated_at")
+
+  @@unique([userId, nif, type])
+  @@index([userId])
+  @@index([nif])
+  @@map("fiscal_entities")
+}
+
+model TaxTable {
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @map("user_id") @db.Uuid
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  taxType     String    @default("IVA") @map("tax_type")
+  region      String    @default("PT")
+  taxCode     String    @map("tax_code")
+  description String
+  rate        Decimal
+  validFrom   DateTime  @default(now()) @map("valid_from")
+  validTo     DateTime? @map("valid_to")
+  createdAt   DateTime  @default(now()) @map("created_at")
+
+  @@unique([userId, taxType, region, taxCode, validFrom])
+  @@index([userId])
+  @@map("tax_tables")
 }

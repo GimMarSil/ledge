@@ -8,6 +8,7 @@ import {
   SidebarFooter,
   SidebarGroup,
   SidebarGroupContent,
+  SidebarGroupLabel,
   SidebarHeader,
   SidebarMenu,
   SidebarMenuButton,
@@ -27,6 +28,7 @@ import { ColoredText } from "../ui/colored-text"
 import { Blinker } from "./blinker"
 import { SidebarMenuItemWithHighlight } from "./sidebar-item"
 import SidebarUser from "./sidebar-user"
+import { ThemeToggle } from "./theme-toggle"
 
 export function AppSidebar({
   profile,
@@ -50,8 +52,8 @@ export function AppSidebar({
     <>
       <Sidebar variant="inset" collapsible="icon">
         <SidebarHeader>
-          <Link href="/" className="flex items-center gap-2">
-            <Image src="/logo/logo.svg" alt="Ledge" className="h-10 w-10 rounded-lg" width={40} height={40} />
+          <Link href="/" className="flex items-center gap-2 px-1 py-1">
+            <Image src="/logo/logo.svg" alt="Ledge" className="h-9 w-9 rounded-lg" width={36} height={36} />
             <div className="grid flex-1 text-left leading-tight">
               <span className="truncate font-semibold text-lg">
                 <ColoredText>{config.app.title}</ColoredText>
@@ -61,18 +63,22 @@ export function AppSidebar({
         </SidebarHeader>
         <SidebarContent>
           <SidebarGroup>
-            <UploadButton className="w-full mt-4 mb-2">
-              <Upload className="h-4 w-4" />
+            <UploadButton className="w-full mt-2 mb-1 bg-gradient-to-r from-[hsl(172,100%,39%)] to-[hsl(172,80%,28%)] text-white shadow-md hover:shadow-glow-teal hover:brightness-110 transition-all duration-200 rounded-lg">
+              <Upload className="h-5 w-5" />
               {open ? <span>Carregar</span> : ""}
             </UploadButton>
           </SidebarGroup>
+
           <SidebarGroup>
+            <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground/70 font-semibold px-2">
+              Navegação
+            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItemWithHighlight href="/dashboard">
                   <SidebarMenuButton asChild>
                     <Link href="/dashboard">
-                      <House />
+                      <House className="h-5 w-5" />
                       <span>Início</span>
                     </Link>
                   </SidebarMenuButton>
@@ -81,12 +87,11 @@ export function AppSidebar({
                 <SidebarMenuItemWithHighlight href="/transactions">
                   <SidebarMenuButton asChild>
                     <Link href="/transactions">
-                      <FileText />
+                      <FileText className="h-5 w-5" />
                       <span>Transações</span>
                       {notification && notification.code === "sidebar.transactions" && notification.message && (
                         <Blinker />
                       )}
-                      <span></span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItemWithHighlight>
@@ -94,7 +99,7 @@ export function AppSidebar({
                 <SidebarMenuItemWithHighlight href="/unsorted">
                   <SidebarMenuButton asChild>
                     <Link href="/unsorted">
-                      <ClockArrowUp />
+                      <ClockArrowUp className="h-5 w-5" />
                       <span>Por Classificar</span>
                       {unsortedFilesCount > 0 && (
                         <span className="flex h-5 w-5 items-center justify-center rounded-full bg-primary text-xs font-medium text-primary-foreground">
@@ -102,22 +107,23 @@ export function AppSidebar({
                         </span>
                       )}
                       {notification && notification.code === "sidebar.unsorted" && notification.message && <Blinker />}
-                      <span></span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItemWithHighlight>
+
                 <SidebarMenuItemWithHighlight href="/apps">
                   <SidebarMenuButton asChild>
                     <Link href="/apps">
-                      <LayoutDashboard />
+                      <LayoutDashboard className="h-5 w-5" />
                       <span>Aplicações</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItemWithHighlight>
+
                 <SidebarMenuItemWithHighlight href="/settings">
                   <SidebarMenuButton asChild>
                     <Link href="/settings">
-                      <Settings />
+                      <Settings className="h-5 w-5" />
                       <span>Definições</span>
                     </Link>
                   </SidebarMenuButton>
@@ -129,14 +135,22 @@ export function AppSidebar({
         <SidebarRail />
         <SidebarFooter>
           <SidebarGroup>
+            <SidebarGroupLabel className="text-xs uppercase tracking-wider text-muted-foreground/70 font-semibold px-2">
+              Ferramentas
+            </SidebarGroupLabel>
             <SidebarGroupContent>
               <SidebarMenu>
                 <SidebarMenuItem>
                   <SidebarMenuButton asChild>
                     <Link href="/import/csv">
-                      <Import />
+                      <Import className="h-5 w-5" />
                       Importar CSV
                     </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItem>
+                <SidebarMenuItem>
+                  <SidebarMenuButton asChild>
+                    <ThemeToggle />
                   </SidebarMenuButton>
                 </SidebarMenuItem>
                 {!open && (

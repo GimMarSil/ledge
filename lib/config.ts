@@ -12,22 +12,31 @@ const envSchema = z.object({
   MISTRAL_MODEL_NAME: z.string().default("mistral-medium-latest"),
   BETTER_AUTH_SECRET: z
     .string()
-    .min(16, "Auth secret must be at least 16 characters")
-    .default("please-set-your-key-here"),
+    .min(32, "BETTER_AUTH_SECRET deve ter pelo menos 32 caracteres. Gere um com: openssl rand -base64 48"),
   DISABLE_SIGNUP: z.enum(["true", "false"]).default("false"),
   RESEND_API_KEY: z.string().default("please-set-your-resend-api-key-here"),
   RESEND_FROM_EMAIL: z.string().default("Ledge <user@localhost>"),
   RESEND_AUDIENCE_ID: z.string().default(""),
   STRIPE_SECRET_KEY: z.string().default(""),
   STRIPE_WEBHOOK_SECRET: z.string().default(""),
+  // BuildFlow
+  BUILDFLOW_MODULE: z.enum(["true", "false"]).default("false"),
+  BUILDFLOW_API_KEY: z.string().default(""),
+  // AT (Autoridade Tributária)
+  AT_SIGNING_PRIVATE_KEY: z.string().default(""),
+  AT_CERTIFICATE_NUMBER: z.string().default("0"),
 })
 
 const env = envSchema.parse(process.env)
 
+const isBuildFlow = env.BUILDFLOW_MODULE === "true"
+
 const config = {
   app: {
-    title: "Ledge",
-    description: "Gestão inteligente de despesas",
+    title: isBuildFlow ? "Despesas & Fiscal" : "Ledge",
+    description: isBuildFlow
+      ? "Gestão completa de despesas, recibos e exportação fiscal"
+      : "Gestão inteligente de despesas",
     version: process.env.npm_package_version || "0.0.1",
     baseURL: env.BASE_URL || `http://localhost:${env.PORT || "7331"}`,
     supportEmail: "portal.rh@ramosferreira.com",
@@ -75,6 +84,14 @@ const config = {
     apiKey: env.RESEND_API_KEY,
     from: env.RESEND_FROM_EMAIL,
     audienceId: env.RESEND_AUDIENCE_ID,
+  },
+  buildflow: {
+    isEnabled: isBuildFlow,
+    apiKey: env.BUILDFLOW_API_KEY,
+  },
+  fiscal: {
+    signingPrivateKey: env.AT_SIGNING_PRIVATE_KEY,
+    certificateNumber: env.AT_CERTIFICATE_NUMBER,
   },
 } as const
 

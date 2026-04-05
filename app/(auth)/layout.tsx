@@ -3,12 +3,12 @@ import Link from "next/link"
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
-    <div className="min-h-screen bg-gray-900 flex flex-col relative">
+    <div className="min-h-screen bg-background flex flex-col relative">
       <Link
         href="/"
-        className="absolute top-4 right-4 flex items-center justify-center w-10 h-10 rounded-full bg-gray-800 hover:bg-gray-700 transition-colors"
+        className="absolute top-4 right-4 flex items-center justify-center w-10 h-10 rounded-full bg-muted hover:bg-muted/80 transition-colors"
       >
-        <span className="text-gray-300 font-bold text-xl">
+        <span className="text-muted-foreground font-bold text-xl">
           <X />
         </span>
       </Link>
