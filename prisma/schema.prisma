@@ -127,15 +127,17 @@ model Category {
 }
 
 model Project {
-  id           String        @id @default(uuid()) @db.Uuid
-  userId       String        @map("user_id") @db.Uuid
-  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
-  code         String
-  name         String
-  color        String        @default("#000000")
-  llm_prompt   String?
-  transactions Transaction[]
-  createdAt    DateTime      @default(now()) @map("created_at")
+  id             String        @id @default(uuid()) @db.Uuid
+  userId         String        @map("user_id") @db.Uuid
+  user           User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code           String
+  name           String
+  color          String        @default("#000000")
+  llm_prompt     String?
+  budget         Int?          @map("budget")
+  budgetCurrency String?       @default("EUR") @map("budget_currency")
+  transactions   Transaction[]
+  createdAt      DateTime      @default(now()) @map("created_at")
 
   @@unique([userId, code])
   @@map("projects")

@@ -6,10 +6,25 @@ import { getCurrentUser } from "@/lib/auth"
 import { formatCurrency } from "@/lib/utils"
 import { getProjects } from "@/models/projects"
 import { getSettings } from "@/models/settings"
-import { getDashboardStats, getDetailedTimeSeriesStats, getProjectStats } from "@/models/stats"
+import { getCostCenterDetailedStats, getDashboardStatsWithTrend, getDetailedTimeSeriesStats } from "@/models/stats"
 import { TransactionFilters } from "@/models/transactions"
 import { ArrowDown, ArrowUp, BarChart3, TrendingUp } from "lucide-react"
 import Link from "next/link"
+
+function TrendBadge({ value, invertColors = false }: { value: number | null; invertColors?: boolean }) {
+  if (value === null) return null
+  const isPositive = value >= 0
+  const colorClass = invertColors
+    ? isPositive ? "text-red-500 bg-red-500/10" : "text-emerald-500 bg-emerald-500/10"
+    : isPositive ? "text-emerald-500 bg-emerald-500/10" : "text-red-500 bg-red-500/10"
+
+  return (
+    <span className={`inline-flex items-center gap-0.5 text-xs font-medium px-1.5 py-0.5 rounded-full ${colorClass}`}>
+      {isPositive ? <ArrowUp className="h-3 w-3" /> : <ArrowDown className="h-3 w-3" />}
+      {Math.abs(value)}%
+    </span>
+  )
+}
 
 export async function StatsWidget({ filters }: { filters: TransactionFilters }) {
   const user = await getCurrentUser()
@@ -17,11 +32,13 @@ export async function StatsWidget({ filters }: { filters: TransactionFilters }) 
   const settings = await getSettings(user.id)
   const defaultCurrency = settings.default_currency || "EUR"
 
-  const stats = await getDashboardStats(user.id, filters)
+  const stats = await getDashboardStatsWithTrend(user.id, filters)
   const statsTimeSeries = await getDetailedTimeSeriesStats(user.id, filters, defaultCurrency)
   const statsPerProject = Object.fromEntries(
     await Promise.all(
-      projects.map((project) => getProjectStats(user.id, project.code, filters).then((stats) => [project.code, stats]))
+      projects.map((project) =>
+        getCostCenterDetailedStats(user.id, project.code, filters, defaultCurrency).then((s) => [project.code, s])
+      )
     )
   )
 
@@ -50,6 +67,7 @@ export async function StatsWidget({ filters }: { filters: TransactionFilters }) 
               {!Object.entries(stats.totalIncomePerCurrency).length && (
                 <div className="text-2xl font-bold tabular-nums">0.00</div>
               )}
+              <TrendBadge value={stats.incomeTrendPercent} />
             </CardContent>
           </Card>
         </Link>
@@ -71,6 +89,7 @@ export async function StatsWidget({ filters }: { filters: TransactionFilters }) 
               {!Object.entries(stats.totalExpensesPerCurrency).length && (
                 <div className="text-2xl font-bold tabular-nums">0.00</div>
               )}
+              <TrendBadge value={stats.expensesTrendPercent} invertColors />
             </CardContent>
           </Card>
         </Link>
@@ -78,7 +97,7 @@ export async function StatsWidget({ filters }: { filters: TransactionFilters }) 
         <Link href="/transactions">
           <Card className="hover:shadow-card-hover transition-all duration-300 cursor-pointer border-l-4 border-l-violet-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Lucro Líquido</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Lucro Liquido</CardTitle>
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-violet-500/10">
                 <TrendingUp className="h-4 w-4 text-violet-500" />
               </div>
@@ -97,6 +116,7 @@ export async function StatsWidget({ filters }: { filters: TransactionFilters }) 
               {!Object.entries(stats.profitPerCurrency).length && (
                 <div className="text-2xl font-bold tabular-nums">0.00</div>
               )}
+              <TrendBadge value={stats.profitTrendPercent} />
             </CardContent>
           </Card>
         </Link>
@@ -104,13 +124,14 @@ export async function StatsWidget({ filters }: { filters: TransactionFilters }) 
         <Link href="/transactions">
           <Card className="hover:shadow-card-hover transition-all duration-300 cursor-pointer border-l-4 border-l-blue-500">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">Transações</CardTitle>
+              <CardTitle className="text-sm font-medium text-muted-foreground">Transacoes</CardTitle>
               <div className="flex items-center justify-center w-8 h-8 rounded-lg bg-blue-500/10">
                 <BarChart3 className="h-4 w-4 text-blue-500" />
               </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold tabular-nums">{stats.invoicesProcessed}</div>
+              <TrendBadge value={stats.transactionsTrendPercent} />
             </CardContent>
           </Card>
         </Link>
@@ -120,7 +141,7 @@ export async function StatsWidget({ filters }: { filters: TransactionFilters }) 
 
       {projects.length > 0 && (
         <>
-          <h2 className="text-2xl font-bold tracking-tight">Projetos</h2>
+          <h2 className="text-2xl font-bold tracking-tight">Centros de Custo</h2>
           <ProjectsWidget projects={projects} statsPerProject={statsPerProject} />
         </>
       )}

@@ -91,6 +91,9 @@ export async function saveProfileAction(
         ? validatedForm.data.businessBankDetails
         : user.businessBankDetails,
     businessLogo: businessLogoUrl,
+    businessNif: validatedForm.data.businessNif !== undefined ? validatedForm.data.businessNif : user.businessNif,
+    businessTaxRegime: validatedForm.data.businessTaxRegime !== undefined ? validatedForm.data.businessTaxRegime : user.businessTaxRegime,
+    businessActivity: validatedForm.data.businessActivity !== undefined ? validatedForm.data.businessActivity : user.businessActivity,
   })
 
   revalidatePath("/settings/profile")
@@ -105,11 +108,14 @@ export async function addProjectAction(userId: string, data: Prisma.ProjectCreat
     return { success: false, error: validatedForm.error.message }
   }
 
+  const budgetCents = validatedForm.data.budget ? Math.round(validatedForm.data.budget * 100) : null
   const project = await createProject(userId, {
     code: codeFromName(validatedForm.data.name),
     name: validatedForm.data.name,
     llm_prompt: validatedForm.data.llm_prompt || null,
     color: validatedForm.data.color || randomHexColor(),
+    budget: budgetCents,
+    budgetCurrency: validatedForm.data.budgetCurrency || "EUR",
   })
   revalidatePath("/settings/projects")
 
@@ -123,10 +129,13 @@ export async function editProjectAction(userId: string, code: string, data: Pris
     return { success: false, error: validatedForm.error.message }
   }
 
+  const budgetCents = validatedForm.data.budget ? Math.round(validatedForm.data.budget * 100) : null
   const project = await updateProject(userId, code, {
     name: validatedForm.data.name,
     llm_prompt: validatedForm.data.llm_prompt,
     color: validatedForm.data.color || "",
+    budget: budgetCents,
+    budgetCurrency: validatedForm.data.budgetCurrency || "EUR",
   })
   revalidatePath("/settings/projects")
 

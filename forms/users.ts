@@ -7,4 +7,7 @@ export const userFormSchema = z.object({
   businessAddress: z.string().max(1024).optional(),
   businessBankDetails: z.string().max(1024).optional(),
   businessLogo: z.instanceof(File).optional(),
+  businessNif: z.string().max(20).optional(),
+  businessTaxRegime: z.string().max(64).optional(),
+  businessActivity: z.string().max(128).optional(),
 })
