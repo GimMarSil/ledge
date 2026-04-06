@@ -42,7 +42,7 @@ export async function getATNews(): Promise<ATNewsItem[]> {
       {
         next: { revalidate: 900 }, // Next.js 15 min cache
         headers: {
-          "User-Agent": "Ledge/1.0 (Expense Management)",
+          "User-Agent": "BuildFlow-Expenses/1.0 (Expense Management)",
           "Accept": "text/html",
           "Accept-Language": "pt-PT,pt;q=0.9",
         },

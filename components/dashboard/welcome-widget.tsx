@@ -2,6 +2,7 @@ import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { ColoredText } from "@/components/ui/colored-text"
 import { getCurrentUser } from "@/lib/auth"
+import config from "@/lib/config"
 import { getSettings, updateSettings } from "@/models/settings"
 import { Banknote, ChartBarStacked, Check, FolderOpenDot, Key, TextCursorInput, X } from "lucide-react"
 import { revalidatePath } from "next/cache"
@@ -51,7 +52,7 @@ export async function WelcomeWidget() {
         <div className="flex flex-col gap-6">
           <div>
             <h2 className="text-2xl font-bold tracking-tight">
-              <ColoredText>Bem-vindo ao Ledge</ColoredText>
+              <ColoredText>Bem-vindo ao {config.app.title}</ColoredText>
             </h2>
             <p className="text-muted-foreground mt-1">
               Gestão inteligente de despesas com análise automática por IA

@@ -22,8 +22,8 @@ export default function LandingPage() {
       <header className="fixed top-0 w-full z-50 bg-background/80 backdrop-blur-xl border-b">
         <div className="max-w-7xl mx-auto px-4 md:px-8 h-16 flex justify-between items-center">
           <Link href="/" className="flex items-center gap-2.5">
-            <Image src="/logo/logo.svg" alt="Ledge" width={32} height={32} className="h-8 w-8" />
-            <span className="text-xl font-bold text-brand-gradient">Ledge</span>
+            <Image src={config.app.logo} alt={config.app.title} width={32} height={32} className="h-8 w-8" />
+            <span className="text-xl font-bold text-brand-gradient">{config.app.title}</span>
           </Link>
           <nav className="hidden md:flex items-center gap-8">
             <a href="#funcionalidades" className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors">
@@ -81,7 +81,7 @@ export default function LandingPage() {
           <div className="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-border/50">
             <video className="w-full h-auto" autoPlay loop muted playsInline poster="/landing/ai-scanner-big.webp">
               <source src="/landing/video.mp4" type="video/mp4" />
-              <Image src="/landing/ai-scanner-big.webp" alt="Ledge Dashboard" width={1728} height={1080} priority />
+              <Image src="/landing/ai-scanner-big.webp" alt={`${config.app.title} Dashboard`} width={1728} height={1080} priority />
             </video>
           </div>
         </div>
@@ -273,7 +273,7 @@ export default function LandingPage() {
       <section id="comecar" className="py-20 px-4 md:px-8 scroll-mt-20">
         <div className="max-w-2xl mx-auto text-center">
           <h2 className="text-3xl sm:text-4xl font-bold tracking-tight mb-4">
-            Comece a usar o <ColoredText>Ledge</ColoredText>
+            Comece a usar o <ColoredText>{config.app.title}</ColoredText>
           </h2>
           <p className="text-muted-foreground text-lg mb-8">
             Controlo total sobre os seus dados. Implemente na sua própria infraestrutura com as suas chaves de IA.
@@ -309,9 +309,9 @@ export default function LandingPage() {
         <div className="max-w-7xl mx-auto">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6">
             <div className="flex items-center gap-2">
-              <Image src="/logo/logo.svg" alt="Ledge" width={24} height={24} className="h-6 w-6" />
-              <span className="font-bold text-brand-gradient">Ledge</span>
-              <span className="text-sm text-muted-foreground">Gestão inteligente de despesas</span>
+              <Image src={config.app.logo} alt={config.app.title} width={24} height={24} className="h-6 w-6" />
+              <span className="font-bold text-brand-gradient">{config.app.title}</span>
+              <span className="text-sm text-muted-foreground">{config.app.description}</span>
             </div>
             <div className="flex flex-wrap gap-6 justify-center">
               <Link

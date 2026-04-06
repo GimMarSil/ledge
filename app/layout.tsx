@@ -7,13 +7,13 @@ import "./globals.css"
 
 export const metadata: Metadata = {
   title: {
-    template: "%s | Ledge",
+    template: `%s | ${config.app.title}`,
     default: config.app.title,
   },
   description: config.app.description,
   icons: {
-    icon: "/favicon.ico",
-    shortcut: "/favicon.ico",
+    icon: config.buildflow.isEnabled ? "/favicon-buildflow.svg" : "/favicon.ico",
+    shortcut: config.buildflow.isEnabled ? "/favicon-buildflow.svg" : "/favicon.ico",
     apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",

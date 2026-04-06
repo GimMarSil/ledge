@@ -1,9 +1,10 @@
 import React from "react"
+import config from "@/lib/config"
 import { EmailLayout } from "./email-layout"
 
 export const NewsletterWelcomeEmail: React.FC = () => (
-  <EmailLayout preview="Bem-vindo ao Ledge!">
-    <h2 style={{ color: "#00C2A8" }}>👋 Bem-vindo ao Ledge!</h2>
+  <EmailLayout preview={`Bem-vindo ao ${config.app.title}!`}>
+    <h2 style={{ color: "#00C2A8" }}>👋 Bem-vindo ao {config.app.title}!</h2>
 
     <p style={{ fontSize: "16px", lineHeight: "1.5", color: "#333" }}>
       Obrigado por subscrever as nossas atualizações. Iremos mantê-lo informado sobre:
@@ -24,7 +25,7 @@ export const NewsletterWelcomeEmail: React.FC = () => (
       <p style={{ fontSize: "16px", color: "#333" }}>
         Com os melhores cumprimentos,
         <br />
-        A equipa Ledge
+        A equipa {config.app.title}
       </p>
     </div>
   </EmailLayout>

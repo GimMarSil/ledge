@@ -48,7 +48,7 @@ export default async function CloudPaymentSuccessPage({
           <ColoredText>Pagamento Concluído</ColoredText>
         </CardTitle>
         <CardDescription className="text-center text-xl">
-          Bem-vindo ao Ledge, {user.name}. Pode iniciar sessão agora
+          Bem-vindo ao {config.app.title}, {user.name}. Pode iniciar sessão agora
         </CardDescription>
         <CardContent className="w-full">
           <LoginForm defaultEmail={user.email} />

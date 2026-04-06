@@ -15,12 +15,12 @@ export default async function LoginPage() {
     <div className="min-h-screen flex flex-col items-center justify-center p-4 bg-gradient-to-br from-background via-background to-primary/5">
       <div className="w-full max-w-md animate-fade-up">
         <Card className="p-8 flex flex-col items-center justify-center gap-6 shadow-2xl border-0 ring-1 ring-border/50">
-          <Image src="/logo/logo.svg" alt="Ledge" width={80} height={80} className="w-20 h-20" />
+          <Image src={config.app.logo} alt={config.app.title} width={80} height={80} className="w-20 h-20" />
           <CardTitle className="text-3xl font-bold">
-            <ColoredText>Ledge</ColoredText>
+            <ColoredText>{config.app.title}</ColoredText>
           </CardTitle>
           <p className="text-sm text-muted-foreground text-center">
-            Gestão inteligente de despesas
+            {config.app.description}
           </p>
           <CardContent className="w-full p-0">
             <LoginForm />

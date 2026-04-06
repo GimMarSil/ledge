@@ -17,13 +17,14 @@ const envSchema = z.object({
     : z.string().default("client-side-not-available"),
   DISABLE_SIGNUP: z.enum(["true", "false"]).default("false"),
   RESEND_API_KEY: z.string().default("please-set-your-resend-api-key-here"),
-  RESEND_FROM_EMAIL: z.string().default("Ledge <user@localhost>"),
+  RESEND_FROM_EMAIL: z.string().default("Despesas <user@localhost>"),
   RESEND_AUDIENCE_ID: z.string().default(""),
   STRIPE_SECRET_KEY: z.string().default(""),
   STRIPE_WEBHOOK_SECRET: z.string().default(""),
   // BuildFlow
   BUILDFLOW_MODULE: z.enum(["true", "false"]).default("false"),
   BUILDFLOW_API_KEY: z.string().default(""),
+  CONTROLHUB_URL: z.string().url().default("https://controlhub.buildflow.pt"),
   // AT (Autoridade Tributária)
   AT_SIGNING_PRIVATE_KEY: z.string().default(""),
   AT_CERTIFICATE_NUMBER: z.string().default("0"),
@@ -39,6 +40,7 @@ const config = {
     description: isBuildFlow
       ? "Gestão completa de despesas, recibos e exportação fiscal"
       : "Gestão inteligente de despesas",
+    logo: isBuildFlow ? "/logo/buildflow-expenses.svg" : "/logo/logo.svg",
     version: process.env.npm_package_version || "0.0.1",
     baseURL: env.BASE_URL || `http://localhost:${env.PORT || "7331"}`,
     supportEmail: "portal.rh@ramosferreira.com",
@@ -90,6 +92,7 @@ const config = {
   buildflow: {
     isEnabled: isBuildFlow,
     apiKey: env.BUILDFLOW_API_KEY,
+    controlHubUrl: env.CONTROLHUB_URL,
   },
   fiscal: {
     signingPrivateKey: env.AT_SIGNING_PRIVATE_KEY,

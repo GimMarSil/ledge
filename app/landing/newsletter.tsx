@@ -34,7 +34,7 @@ export function NewsletterForm() {
       <div className="max-w-2xl mx-auto text-center">
         <h3 className="text-2xl font-semibold mb-4">Stay Tuned</h3>
         <p className="text-gray-600 mb-6">
-          Estamos a trabalhar para tornar o Ledge útil para todos. Subscreva para ser notificado sobre
+          Estamos a trabalhar para tornar a plataforma útil para todos. Subscreva para ser notificado sobre
           os nossos planos e novas funcionalidades. Sem marketing, anúncios ou spam.
         </p>
         <form onSubmit={handleSubmit} className="flex flex-col gap-4 max-w-md mx-auto">

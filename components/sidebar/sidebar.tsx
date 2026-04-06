@@ -53,7 +53,7 @@ export function AppSidebar({
       <Sidebar variant="inset" collapsible="icon">
         <SidebarHeader>
           <Link href="/" className="flex items-center gap-2 px-1 py-1">
-            <Image src="/logo/logo.svg" alt="Ledge" className="h-9 w-9 rounded-lg" width={36} height={36} />
+            <Image src={config.app.logo} alt={config.app.title} className="h-9 w-9 rounded-lg" width={36} height={36} />
             <div className="grid flex-1 text-left leading-tight">
               <span className="truncate font-semibold text-lg">
                 <ColoredText>{config.app.title}</ColoredText>

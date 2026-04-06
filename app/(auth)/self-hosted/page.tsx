@@ -18,7 +18,7 @@ export default async function SelfHostedWelcomePage() {
         </CardTitle>
         <CardDescription className="text-center text-lg flex flex-col gap-2">
           <p>
-            Para usar o Ledge em modo self-hosted, defina <code className="font-bold">SELF_HOSTED_MODE=true</code> no
+            Para usar o {config.app.title} em modo self-hosted, defina <code className="font-bold">SELF_HOSTED_MODE=true</code> no
             seu ambiente.
           </p>
           <p>No modo self-hosted pode usar a sua própria chave de API de IA e guardar os dados no seu servidor.</p>
@@ -41,12 +41,12 @@ export default async function SelfHostedWelcomePage() {
 
   return (
     <Card className="w-full max-w-xl mx-auto p-8 flex flex-col items-center justify-center gap-4">
-      <Image src="/logo/logo.svg" alt="Ledge" width={144} height={144} className="w-36 h-36" />
+      <Image src={config.app.logo} alt={config.app.title} width={144} height={144} className="w-36 h-36" />
       <CardTitle className="text-3xl font-bold ">
-        <ColoredText>Ledge</ColoredText>
+        <ColoredText>{config.app.title}</ColoredText>
       </CardTitle>
       <CardDescription className="flex flex-col gap-4 text-center text-lg">
-        <p>Bem-vindo ao Ledge. Vamos configurar algumas definições para começar.</p>
+        <p>Bem-vindo ao {config.app.title}. Vamos configurar algumas definições para começar.</p>
         <SelfHostedSetupFormClient defaultProvider={defaultProvider} defaultApiKeys={defaultApiKeys} />
       </CardDescription>
     </Card>

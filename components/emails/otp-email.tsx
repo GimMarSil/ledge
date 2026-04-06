@@ -1,4 +1,5 @@
 import React from "react"
+import config from "@/lib/config"
 import { EmailLayout } from "./email-layout"
 
 interface OTPEmailProps {
@@ -6,8 +7,8 @@ interface OTPEmailProps {
 }
 
 export const OTPEmail: React.FC<OTPEmailProps> = ({ otp }) => (
-  <EmailLayout preview="O seu código de verificação Ledge">
-    <h2 style={{ textAlign: "center", color: "#00C2A8" }}>🔑 O seu código de verificação Ledge</h2>
+  <EmailLayout preview={`O seu código de verificação ${config.app.title}`}>
+    <h2 style={{ textAlign: "center", color: "#00C2A8" }}>🔑 O seu código de verificação {config.app.title}</h2>
     <div
       style={{
         margin: "20px 0",
