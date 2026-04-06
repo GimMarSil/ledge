@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/sidebar"
 import { UserProfile } from "@/lib/auth"
 import config from "@/lib/config"
-import { ClockArrowUp, FileText, House, Import, LayoutDashboard, Settings, Upload } from "lucide-react"
+import { Calculator, ClockArrowUp, FileText, House, Import, Settings, Upload } from "lucide-react"
 import Image from "next/image"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
@@ -111,11 +111,11 @@ export function AppSidebar({
                   </SidebarMenuButton>
                 </SidebarMenuItemWithHighlight>
 
-                <SidebarMenuItemWithHighlight href="/apps">
+                <SidebarMenuItemWithHighlight href="/fiscal">
                   <SidebarMenuButton asChild>
-                    <Link href="/apps">
-                      <LayoutDashboard className="h-5 w-5" />
-                      <span>Aplicações</span>
+                    <Link href="/fiscal">
+                      <Calculator className="h-5 w-5" />
+                      <span>Painel Fiscal</span>
                     </Link>
                   </SidebarMenuButton>
                 </SidebarMenuItemWithHighlight>
