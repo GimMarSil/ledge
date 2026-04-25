@@ -12,7 +12,7 @@ concurrency:
 env:
   SERVER_PATH: /opt/saas-platform/modules/despesas-fiscal
   CONTAINER_NAME: buildflow_despesas_fiscal
-  COMPOSE_FILE: docker-compose.prod.yml
+  COMPOSE_FILE: docker-compose.buildflow.yml
   HEALTH_URL: https://despesas.buildflow.pt/api/buildflow/health
 
 jobs:
