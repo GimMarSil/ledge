@@ -1,14 +1,14 @@
 # Docker Compose para deploy como módulo BuildFlow
 # Usar no servidor BuildFlow (77.42.26.248)
+# Includes Traefik labels + traefik-public network for HTTPS routing
 
 services:
   app:
     build:
       context: .
       dockerfile: Dockerfile
+    image: despesas-fiscal-app:latest
     container_name: buildflow_despesas_fiscal
-    ports:
-      - "7331:7331"
     environment:
       - NODE_ENV=production
       - PORT=7331
@@ -25,6 +25,14 @@ services:
       - postgres
     networks:
       - buildflow_network
+      - traefik-public
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=traefik-public"
+      - "traefik.http.routers.despesas.rule=Host(`despesas.buildflow.pt`)"
+      - "traefik.http.routers.despesas.entrypoints=websecure"
+      - "traefik.http.routers.despesas.tls.certresolver=letsencrypt"
+      - "traefik.http.services.despesas.loadbalancer.server.port=7331"
     logging:
       driver: "json-file"
       options:
@@ -52,3 +60,5 @@ services:
 networks:
   buildflow_network:
     driver: bridge
+  traefik-public:
+    external: true
