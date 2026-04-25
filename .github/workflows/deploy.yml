@@ -25,6 +25,25 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Clean stale source on server (preserve .env.production + persistent dirs)
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SSH_HOST }}
+          username: ${{ secrets.SSH_USER }}
+          key: ${{ secrets.SSH_PRIVATE_KEY }}
+          command_timeout: 2m
+          script: |
+            set -e
+            mkdir -p ${{ env.SERVER_PATH }}
+            cd ${{ env.SERVER_PATH }}
+            # Mirror behaviour: nuke source tree, keep .env.production + data/pgdata volumes.
+            find . -mindepth 1 -maxdepth 1 \
+              ! -name '.env.production' \
+              ! -name 'data' \
+              ! -name 'pgdata' \
+              -exec rm -rf {} +
+            echo "Cleaned. Kept: $(ls -A)"
+
       - name: Copy files to server
         uses: appleboy/scp-action@v0.1.7
         with:
