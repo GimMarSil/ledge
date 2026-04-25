@@ -1,16 +1,23 @@
 import { NextResponse } from "next/server"
+import { headers } from "next/headers"
 import { prisma } from "@/lib/db"
-import { authenticateBuildFlowRequest } from "../../middleware"
 import { createUserDefaults, isDatabaseEmpty } from "@/models/defaults"
 
 /**
  * Provision a new tenant workspace in Despesas.
  * Called by ControlHub when a tenant subscribes to the Despesas app.
  * Creates the admin user and default data (categories, fields, settings).
+ *
+ * Auth note: this endpoint does NOT use the shared `authenticateBuildFlowRequest`
+ * middleware because that middleware requires an existing user — and this is
+ * the endpoint that creates the user. Server-to-server API key only.
  */
 export async function POST(request: Request) {
-  const authResult = await authenticateBuildFlowRequest()
-  if (authResult instanceof NextResponse) return authResult
+  const apiKey = (await headers()).get("x-buildflow-api-key")
+  const expectedKey = process.env.BUILDFLOW_API_KEY
+  if (!expectedKey || !apiKey || apiKey !== expectedKey) {
+    return NextResponse.json({ error: "API key inválida" }, { status: 401 })
+  }
 
   const body = await request.json()
   const { tenantId, adminEmail, adminName } = body
