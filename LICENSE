@@ -1,6 +1,14 @@
 MIT License
 
-Copyright (c) 2025 Vasily Zubarev, me@vas3k.ru
+Copyright (c) 2026 BuildFlow (Gilberto Marques da Silva) — modifications and
+                   Portuguese fiscal layer (SAF-T PT, ATCUD, QR Code, NIF,
+                   IVA, hash chain, AT portal integration), BuildFlow
+                   platform integration (SSO, tenant provisioning,
+                   widgets API).
+
+Copyright (c) 2025 Vasily Zubarev, me@vas3k.ru — original TaxHacker codebase
+                   from which this project was forked. See
+                   MIGRATION_FROM_TAXHACKER.md for fork history.
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
