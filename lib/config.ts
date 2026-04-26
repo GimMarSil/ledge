@@ -22,7 +22,10 @@ const envSchema = z.object({
   STRIPE_SECRET_KEY: z.string().default(""),
   STRIPE_WEBHOOK_SECRET: z.string().default(""),
   // BuildFlow
-  BUILDFLOW_MODULE: z.enum(["true", "false"]).default("false"),
+  // This fork is BuildFlow's Despesas product. Default to BuildFlow mode so
+  // the brand, legal copy and self-hosted setup don't fall back to the
+  // upstream "Ledge" identity. Only set to "false" if running upstream.
+  BUILDFLOW_MODULE: z.enum(["true", "false"]).default("true"),
   BUILDFLOW_API_KEY: z.string().default(""),
   CONTROLHUB_URL: z.string().url().default("https://controlhub.buildflow.pt"),
   // AT (Autoridade Tributária)
