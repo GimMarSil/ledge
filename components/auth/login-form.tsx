@@ -22,21 +22,24 @@ export function LoginForm({ defaultEmail }: { defaultEmail?: string }) {
     setIsLoading(true)
     setError(null)
 
+    // SECURITY: account enumeration prevention.
+    // Always advance to the OTP screen with the same generic message,
+    // regardless of whether the email is registered. The auth backend
+    // silently no-ops for unknown emails, so an attacker cannot use this
+    // form to scrape which addresses have accounts.
     try {
-      const result = await authClient.emailOtp.sendVerificationOtp({
-        email,
-        type: "sign-in",
-      })
-      if (result.error) {
-        setError(result.error.message || "Falha ao enviar o código")
-        return
-      }
-      setIsOtpSent(true)
-      setTimeout(() => otpRefs.current[0]?.focus(), 100)
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Falha ao enviar o código")
+      await authClient.emailOtp
+        .sendVerificationOtp({ email, type: "sign-in" })
+        .catch(() => {
+          // Swallow failures (network, unknown email, rate-limit) so the
+          // UI never reveals account existence. Real errors are still
+          // logged server-side via the auth provider's logger.
+        })
     } finally {
       setIsLoading(false)
+      // Always show the OTP screen — same UX whether the email is real or not.
+      setIsOtpSent(true)
+      setTimeout(() => otpRefs.current[0]?.focus(), 100)
     }
   }
 

@@ -10,21 +10,11 @@ import SelfHostedSetupFormClient from "./setup-form-client"
 
 export default async function SelfHostedWelcomePage() {
   if (!config.selfHosted.isEnabled) {
-    return (
-      <Card className="w-full max-w-xl mx-auto p-8 flex flex-col items-center justify-center gap-6">
-        <CardTitle className="text-2xl font-bold flex items-center gap-2">
-          <ShieldAlert className="w-6 h-6" />
-          <span>Modo Self-Hosted não está ativado</span>
-        </CardTitle>
-        <CardDescription className="text-center text-lg flex flex-col gap-2">
-          <p>
-            Para usar o {config.app.title} em modo self-hosted, defina <code className="font-bold">SELF_HOSTED_MODE=true</code> no
-            seu ambiente.
-          </p>
-          <p>No modo self-hosted pode usar a sua própria chave de API de IA e guardar os dados no seu servidor.</p>
-        </CardDescription>
-      </Card>
-    )
+    // Customer-facing copy. Do NOT show developer instructions
+    // (`SELF_HOSTED_MODE=true`) on a public CTA destination — visitors
+    // who land here from "Começar Gratuitamente" need to be funnelled
+    // toward conversion (talk to sales / start trial) instead.
+    redirect("/")
   }
 
   const user = await getSelfHostedUser()

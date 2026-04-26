@@ -1,210 +1,105 @@
 import config from "@/lib/config"
 
 export default async function PrivacyPolicy() {
+  const { title, supportEmail, legalEntity, legalDomain } = config.app
+  const effectiveDate = "26 de abril de 2026"
+
   return (
     <div className="prose prose-slate max-w-none">
-      <h2 className="text-3xl font-bold mb-6 text-slate-900 border-b pb-2">
-        <strong>Privacy Policy</strong>
-      </h2>
-
-      <p className="text-slate-700 mb-6 leading-relaxed bg-yellow-50 p-3 border-l-4 border-yellow-400">
-        <strong className="text-slate-800">TL;DR:</strong> If you really care about privacy of your data, use our
-        self-hosted version instead. No cloud is safe. Use the platform is at your own risk.
-      </p>
+      <h1 className="text-3xl font-bold mb-6 text-slate-900 border-b pb-2">Política de Privacidade</h1>
 
       <p className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
-        <strong className="text-slate-700">Effective Date</strong>: April 22, 2025
+        <strong>Data de entrada em vigor:</strong> {effectiveDate}
         <br />
-        <strong className="text-slate-700">Contact Email</strong>:{" "}
-        <a href={`mailto:${config.app.supportEmail}`} className="text-blue-600 hover:text-blue-800">
-          {config.app.supportEmail}
+        <strong>Responsável pelo tratamento:</strong> {legalEntity}
+        <br />
+        <strong>Email de contacto / DPO:</strong>{" "}
+        <a href={`mailto:${supportEmail}`} className="text-blue-600 hover:text-blue-800">
+          {supportEmail}
         </a>
         <br />
-        <strong className="text-slate-700">Domain</strong>:{" "}
-        <a href="https://ledge.ramosferreira.pt" className="text-blue-600 hover:text-blue-800">
-          https://ledge.ramosferreira.pt
+        <strong>Domínio:</strong>{" "}
+        <a href={`https://${legalDomain}`} className="text-blue-600 hover:text-blue-800">
+          https://{legalDomain}
         </a>
       </p>
 
       <p className="text-slate-700 mb-6 leading-relaxed">
-        {config.app.title} (&quot;we&quot;, &quot;our&quot;, &quot;us&quot;) is committed to protecting your privacy. This
-        Privacy Policy describes how we collect, use, store, and protect your personal data when you use our services at{" "}
-        <a href="https://ledge.ramosferreira.pt" className="text-blue-600 hover:text-blue-800">
-          ledge.ramosferreira.pt
+        {legalEntity} (&quot;nós&quot;) compromete-se a proteger os dados pessoais dos utilizadores do {title} (&quot;serviço&quot;) em conformidade com o Regulamento Geral sobre a Proteção de Dados (RGPD, Regulamento UE 2016/679) e a legislação portuguesa aplicável. Esta política descreve quais os dados que recolhemos, como os utilizamos, como os protegemos, e os seus direitos.
+      </p>
+
+      <h2 className="text-2xl font-semibold text-slate-800 mb-4">1. Dados que tratamos</h2>
+      <ul className="list-disc pl-6 mb-6 space-y-2 text-slate-700">
+        <li><strong>Conta:</strong> nome, email, função, organização, NIF/NIPC, contactos.</li>
+        <li><strong>Documentos carregados:</strong> faturas, recibos, contratos e respetivos metadados (fornecedor, NIF, valor, IVA, data).</li>
+        <li><strong>Utilização:</strong> logs de acesso, IP, user-agent, eventos de auditoria, eventos de uso (para faturação e métricas).</li>
+        <li><strong>Pagamentos:</strong> processados via Stripe; não armazenamos dados completos de cartão.</li>
+      </ul>
+
+      <h2 className="text-2xl font-semibold text-slate-800 mb-4">2. Finalidades e base legal</h2>
+      <ul className="list-disc pl-6 mb-6 space-y-2 text-slate-700">
+        <li><strong>Execução do contrato (art. 6.º, n.º 1, b) RGPD):</strong> fornecer o serviço subscrito.</li>
+        <li><strong>Obrigação legal (art. 6.º, n.º 1, c) RGPD):</strong> conservação de documentos fiscais por 10 anos conforme art. 123.º-A do CIVA.</li>
+        <li><strong>Interesse legítimo (art. 6.º, n.º 1, f) RGPD):</strong> segurança da plataforma, prevenção de fraude, melhoria do serviço.</li>
+        <li><strong>Consentimento (art. 6.º, n.º 1, a) RGPD):</strong> cookies não-essenciais e comunicações de marketing.</li>
+      </ul>
+
+      <h2 className="text-2xl font-semibold text-slate-800 mb-4">3. Subcontratantes (sub-processadores)</h2>
+      <p className="text-slate-700 mb-3">Recorremos aos seguintes prestadores, todos vinculados por contrato e em conformidade com o RGPD:</p>
+      <ul className="list-disc pl-6 mb-6 space-y-2 text-slate-700">
+        <li><strong>Hetzner Online GmbH</strong> (Alemanha): infraestrutura de servidores.</li>
+        <li><strong>OpenAI / Google / Mistral</strong>: processamento de OCR (apenas o conteúdo do documento; sem identificadores pessoais persistidos pelo prestador).</li>
+        <li><strong>Stripe Payments Europe</strong>: processamento de pagamentos.</li>
+        <li><strong>Resend</strong>: envio de emails transacionais.</li>
+      </ul>
+
+      <h2 className="text-2xl font-semibold text-slate-800 mb-4">4. Conservação</h2>
+      <p className="text-slate-700 mb-6">
+        Documentos fiscais (faturas, SAF-T): 10 anos a contar do fim do exercício, conforme obrigação legal portuguesa. Logs de acesso e auditoria: 12 meses. Após cessação do contrato, os dados são exportáveis durante 90 dias e depois eliminados de forma irreversível.
+      </p>
+
+      <h2 className="text-2xl font-semibold text-slate-800 mb-4">5. Os seus direitos</h2>
+      <p className="text-slate-700 mb-3">Como titular dos dados pode, a qualquer momento:</p>
+      <ul className="list-disc pl-6 mb-6 space-y-2 text-slate-700">
+        <li>Aceder e obter cópia dos seus dados (direito de acesso e portabilidade);</li>
+        <li>Corrigir dados incorretos ou desatualizados (direito de retificação);</li>
+        <li>Solicitar a eliminação dos dados, sem prejuízo das obrigações legais de conservação (direito ao apagamento);</li>
+        <li>Solicitar a limitação ou opor-se a determinados tratamentos;</li>
+        <li>Retirar consentimento previamente dado.</li>
+      </ul>
+      <p className="text-slate-700 mb-6">
+        Para exercer estes direitos contacte{" "}
+        <a href={`mailto:${supportEmail}`} className="text-blue-600 hover:text-blue-800">
+          {supportEmail}
+        </a>
+        . Respondemos no prazo máximo de 30 dias. Pode também apresentar reclamação à <a href="https://www.cnpd.pt" className="text-blue-600 hover:text-blue-800">Comissão Nacional de Proteção de Dados (CNPD)</a>.
+      </p>
+
+      <h2 className="text-2xl font-semibold text-slate-800 mb-4">6. Segurança</h2>
+      <ul className="list-disc pl-6 mb-6 space-y-2 text-slate-700">
+        <li>Encriptação em trânsito (TLS 1.3) e em repouso (AES-256);</li>
+        <li>Autenticação multi-fator (MFA) obrigatória para todas as contas pagas;</li>
+        <li>Backups diários encriptados, com retenção de 30 dias;</li>
+        <li>Logs de auditoria imutáveis para todos os acessos administrativos;</li>
+        <li>Isolamento de instâncias por cliente (modelo dedicated-per-tenant).</li>
+      </ul>
+
+      <h2 className="text-2xl font-semibold text-slate-800 mb-4">7. Transferências internacionais</h2>
+      <p className="text-slate-700 mb-6">
+        Os dados são armazenados em servidores na União Europeia (Alemanha). Algumas integrações (OpenAI, Stripe) podem implicar transferências para fora da UE; nesses casos aplicam-se Cláusulas Contratuais-Tipo aprovadas pela Comissão Europeia.
+      </p>
+
+      <h2 className="text-2xl font-semibold text-slate-800 mb-4">8. Alterações</h2>
+      <p className="text-slate-700 mb-6">
+        Atualizações materiais a esta Política são comunicadas com 30 dias de antecedência por email para o endereço associado à conta.
+      </p>
+
+      <p className="text-slate-700 mt-8 text-sm border-t pt-4">
+        Em caso de dúvida sobre o tratamento dos seus dados pessoais, contacte{" "}
+        <a href={`mailto:${supportEmail}`} className="text-blue-600 hover:text-blue-800">
+          {supportEmail}
         </a>
         .
-      </p>
-
-      <hr className="my-8 border-slate-200" />
-
-      <h3 className="text-2xl font-semibold text-slate-800 mb-4">
-        1. <strong>What Data We Collect</strong>
-      </h3>
-      <p className="text-slate-700 mb-3">We collect the following types of data when you use {config.app.title}:</p>
-      <ul className="list-disc pl-6 mb-6 space-y-2 text-slate-700">
-        <li>
-          <strong className="text-slate-800">Account Data</strong>: Email address, display name, optional avatar image.
-          No passwords are stored.
-        </li>
-        <li>
-          <strong className="text-slate-800">Communication Data</strong>: Email messages we send for verification,
-          updates, or newsletters.
-        </li>
-        <li>
-          <strong className="text-slate-800">Uploaded Files</strong>: Invoices, receipts and any other files that you
-          upload, which may contain sensitive personal or financial information.
-        </li>
-        <li>
-          <strong className="text-slate-800">Session Metadata</strong>: IP address, browser type, and timestamps for
-          session security.
-        </li>
-        <li>
-          <strong className="text-slate-800">Service Usage Data</strong>: Metadata related to your activity within the
-          platform (e.g. number of uploaded files, AI tokens usage).
-        </li>
-      </ul>
-
-      <hr className="my-8 border-slate-200" />
-
-      <h3 className="text-2xl font-semibold text-slate-800 mb-4">
-        2. <strong>How We Use Your Data</strong>
-      </h3>
-      <p className="text-slate-700 mb-3">We use your data to:</p>
-      <ul className="list-disc pl-6 mb-6 space-y-2 text-slate-700">
-        <li>Create and manage your {config.app.title} account</li>
-        <li>Store and analyze your uploaded files</li>
-        <li>Improve your financial organization through AI-powered insights</li>
-        <li>Communicate with you about your account and service updates</li>
-        <li>Comply with legal obligations</li>
-      </ul>
-
-      <hr className="my-8 border-slate-200" />
-
-      <h3 className="text-2xl font-semibold text-slate-800 mb-4">
-        3. <strong>AI-Powered Processing</strong>
-      </h3>
-      <p className="text-slate-700 mb-3">
-        We use external AI services, specifically <strong className="text-slate-800">OpenAI (ChatGPT)</strong>, to:
-      </p>
-      <ul className="list-disc pl-6 mb-4 space-y-2 text-slate-700">
-        <li>Extract and interpret information from invoices using OCR</li>
-        <li>Analyze financial data for better user insights</li>
-      </ul>
-
-      <p className="text-slate-700 mb-6 leading-relaxed">
-        By using {config.app.title}, you consent to the transfer of relevant data to these third-party providers for the purpose
-        of processing. These providers may operate outside the EU, in compliance with appropriate safeguards under GDPR
-        (e.g., SCCs).
-      </p>
-
-      <hr className="my-8 border-slate-200" />
-
-      <h3 className="text-2xl font-semibold text-slate-800 mb-4">
-        4. <strong>Cookies and Tracking</strong>
-      </h3>
-      <p className="text-slate-700 mb-6 leading-relaxed">
-        {config.app.title} does <strong className="text-slate-800">not use tracking cookies</strong> or third-party analytics. We
-        only collect aggregate access logs and usage statistics via{" "}
-        <strong className="text-slate-800">Cloudflare</strong> for infrastructure performance and security.
-      </p>
-
-      <hr className="my-8 border-slate-200" />
-
-      <h3 className="text-2xl font-semibold text-slate-800 mb-4">
-        5. <strong>Data Storage and Security</strong>
-      </h3>
-      <ul className="list-disc pl-6 mb-4 space-y-2 text-slate-700">
-        <li>
-          All data is stored on servers in <strong className="text-slate-800">Germany</strong>, hosted by{" "}
-          <strong className="text-slate-800">Hetzner Cloud</strong>.
-        </li>
-        <li>Files and personal data are stored in an unencrypted form.</li>
-        <li>Access to personal data is limited to authorized team members for debugging or support purposes only.</li>
-      </ul>
-
-      <p className="text-slate-700 mb-6 leading-relaxed bg-yellow-50 p-3 border-l-4 border-yellow-400">
-        While we strive to maintain reasonable safeguards, no system is completely secure. Use the platform at your own
-        risk.
-      </p>
-
-      <hr className="my-8 border-slate-200" />
-
-      <h3 className="text-2xl font-semibold text-slate-800 mb-4">
-        6. <strong>Legal Basis for Processing</strong>
-      </h3>
-      <p className="text-slate-700 mb-3">We process personal data based on:</p>
-      <ul className="list-disc pl-6 mb-4 space-y-2 text-slate-700">
-        <li>
-          <strong className="text-slate-800">Your consent</strong>, which you grant when you create an account or upload
-          data
-        </li>
-        <li>
-          <strong className="text-slate-800">Our contractual obligations</strong> to provide the services you signed up
-          for
-        </li>
-      </ul>
-
-      <p className="text-slate-700 mb-6 leading-relaxed">
-        You can withdraw consent at any time by deleting your account or contacting us directly.
-      </p>
-
-      <hr className="my-8 border-slate-200" />
-
-      <h3 className="text-2xl font-semibold text-slate-800 mb-4">
-        7. <strong>Data Retention</strong>
-      </h3>
-      <p className="text-slate-700 mb-3">We retain your data:</p>
-      <ul className="list-disc pl-6 mb-4 space-y-2 text-slate-700">
-        <li>As long as your account remains active</li>
-        <li>Until you request deletion</li>
-      </ul>
-
-      <p className="text-slate-700 mb-6 leading-relaxed">
-        Once deleted, your data is removed from our systems, though some residual logs may remain for a short time due
-        to backups or operational needs.
-      </p>
-
-      <hr className="my-8 border-slate-200" />
-
-      <h3 className="text-2xl font-semibold text-slate-800 mb-4">
-        8. <strong>Your Rights (under GDPR and similar laws)</strong>
-      </h3>
-      <p className="text-slate-700 mb-3">As a user, you have the right to:</p>
-      <ul className="list-disc pl-6 mb-4 space-y-2 text-slate-700">
-        <li>Access and review your personal data</li>
-        <li>Correct or update inaccurate information</li>
-        <li>Download a full backup of your data</li>
-        <li>Request permanent deletion of your account and associated data</li>
-        <li>Object to certain forms of processing</li>
-        <li>Lodge a complaint with a data protection authority</li>
-      </ul>
-
-      <p className="text-slate-700 mb-6 leading-relaxed">
-        To exercise your rights, contact us at{" "}
-        <a href={`mailto:${config.app.supportEmail}`} className="text-blue-600 hover:text-blue-800">
-          {config.app.supportEmail}
-        </a>
-        .
-      </p>
-
-      <hr className="my-8 border-slate-200" />
-
-      <h3 className="text-2xl font-semibold text-slate-800 mb-4">
-        9. <strong>Children&apos;s Privacy</strong>
-      </h3>
-      <p className="text-slate-700 mb-6 leading-relaxed">
-        {config.app.title} is <strong className="text-slate-800">not intended for users under the age of 18</strong>. We do not
-        knowingly collect or store data from minors.
-      </p>
-
-      <hr className="my-8 border-slate-200" />
-
-      <h3 className="text-2xl font-semibold text-slate-800 mb-4">
-        10. <strong>Changes to This Policy</strong>
-      </h3>
-      <p className="text-slate-700 mb-6 leading-relaxed">
-        We may update this Privacy Policy from time to time. Any changes will be published on this page with an updated
-        &quot;Effective Date.&quot; We encourage you to review the policy periodically.
       </p>
     </div>
   )

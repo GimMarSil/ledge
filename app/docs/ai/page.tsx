@@ -1,112 +1,81 @@
 import config from "@/lib/config"
 
 export default async function AI() {
+  const { title, supportEmail, legalEntity, legalDomain } = config.app
+  const effectiveDate = "26 de abril de 2026"
+
   return (
     <div className="prose prose-slate max-w-none">
-      <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-6">AI Use Disclosure</h1>
+      <h1 className="text-3xl font-bold tracking-tight text-slate-900 mb-6 border-b pb-2">
+        Divulgação sobre Utilização de Inteligência Artificial
+      </h1>
 
       <p className="bg-slate-50 p-4 rounded-lg border border-slate-200 mb-6">
-        <strong className="text-slate-700">Effective Date</strong>: April 22, 2025
+        <strong>Data de entrada em vigor:</strong> {effectiveDate}
         <br />
-        <strong className="text-slate-700">Contact Email</strong>:{" "}
-        <a href={`mailto:${config.app.supportEmail}`} className="text-blue-600 hover:text-blue-800">
-          {config.app.supportEmail}
+        <strong>Responsável:</strong> {legalEntity}
+        <br />
+        <strong>Domínio:</strong>{" "}
+        <a href={`https://${legalDomain}`} className="text-blue-600 hover:text-blue-800">
+          https://{legalDomain}
         </a>
         <br />
-        <strong className="text-slate-700">Domain</strong>:{" "}
-        <a href="https://ledge.ramosferreira.pt" className="text-blue-600 hover:text-blue-800">
-          https://ledge.ramosferreira.pt
+        <strong>Contacto:</strong>{" "}
+        <a href={`mailto:${supportEmail}`} className="text-blue-600 hover:text-blue-800">
+          {supportEmail}
         </a>
       </p>
 
-      <p className="text-gray-700 leading-relaxed mb-6">
-        At {config.app.title}, we use artificial intelligence (&quot;AI&quot;) to power the core features of our platform. This
-        document outlines how and why we use AI technologies, what data is processed, and how it may affect you as a
-        user.
+      <p className="text-slate-700 mb-6 leading-relaxed">
+        O {title} utiliza modelos de Inteligência Artificial (IA) para automatizar a extração de dados a partir de imagens e PDFs de faturas, recibos e outros documentos fiscais. Esta divulgação descreve como, com que prestadores, e com que limites.
       </p>
 
-      <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">1. Purpose of AI in {config.app.title}</h2>
-      <p className="text-gray-700 leading-relaxed mb-3">AI is essential to the {config.app.title} experience. It is used for:</p>
-      <ul className="list-disc pl-6 space-y-2 mb-6 text-gray-700">
-        <li>Optical Character Recognition (OCR) of scanned invoices and receipts</li>
-        <li>Automatic categorization and tagging of financial transactions</li>
-        <li>Summarization of expenses and vendor descriptions</li>
-        <li>Smart field population and autofill within forms</li>
-        <li>Custom prompt-driven workflows</li>
+      <h2 className="text-2xl font-semibold text-slate-800 mb-4">1. Onde usamos IA</h2>
+      <ul className="list-disc pl-6 mb-6 space-y-2 text-slate-700">
+        <li><strong>OCR de documentos:</strong> reconhecimento de texto em imagens e PDFs.</li>
+        <li><strong>Extração estruturada:</strong> identificação de campos como NIF, valor, data, fornecedor, IVA.</li>
+        <li><strong>Categorização:</strong> sugestão de categoria fiscal com base no conteúdo do documento.</li>
+        <li><strong>Validação:</strong> deteção de inconsistências (ex: total ≠ subtotal + IVA, NIF inválido).</li>
       </ul>
-      <p className="text-gray-700 leading-relaxed mb-6">
-        All AI-generated content is visible directly in the user interface and may be applied to your transactions,
-        projects, and reports.
-      </p>
 
-      <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">2. AI Providers and Models</h2>
-      <p className="text-gray-700 leading-relaxed mb-3">
-        Our cloud-hosted version uses models provided by <strong>OpenAI</strong>, including:
-      </p>
-      <ul className="list-disc pl-6 space-y-2 mb-6 text-gray-700">
-        <li>
-          <strong>gpt-4o-mini</strong> and <strong>gpt-4.1-mini</strong>
-        </li>
+      <h2 className="text-2xl font-semibold text-slate-800 mb-4">2. Prestadores de IA</h2>
+      <p className="text-slate-700 mb-3">Recorremos aos seguintes prestadores, configuráveis por instância:</p>
+      <ul className="list-disc pl-6 mb-6 space-y-2 text-slate-700">
+        <li><strong>OpenAI (GPT-4o, GPT-4o-mini):</strong> processamento padrão. Os documentos enviados não são utilizados para treinar modelos da OpenAI (opt-out via Enterprise / API).</li>
+        <li><strong>Google (Gemini):</strong> alternativa para idiomas e formatos específicos.</li>
+        <li><strong>Mistral:</strong> alternativa europeia para clientes que prefiram processamento na UE.</li>
       </ul>
-      <p className="text-gray-700 leading-relaxed mb-6">
-        In the <strong>self-hosted version</strong>, users may choose to connect their own language models or AI
-        backends. We do not monitor or vet these setups and assume no responsibility for their output.
+
+      <h2 className="text-2xl font-semibold text-slate-800 mb-4">3. Que dados são enviados aos prestadores</h2>
+      <p className="text-slate-700 mb-6">
+        Apenas o conteúdo do documento (imagem ou texto extraído). Não enviamos identificadores pessoais do utilizador (nome, email, ID interno) nem metadados da conta. As respostas dos modelos não são partilhadas com terceiros.
       </p>
 
-      <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">3. Data Sent for AI Processing</h2>
-      <p className="text-gray-700 leading-relaxed mb-3">
-        To deliver AI-powered features, we send selected user data to OpenAI&apos;s API, including:
-      </p>
-      <ul className="list-disc pl-6 space-y-2 mb-6 text-gray-700">
-        <li>Uploaded documents (e.g., receipts, invoices)</li>
-        <li>Associated transaction metadata and user-provided fields</li>
-        <li>Historical context of past transactions (if required for analysis)</li>
-      </ul>
-      <p className="bg-amber-50 p-4 rounded-lg border border-amber-200 mb-4">
-        <strong className="text-amber-600">⚠️ Note:</strong> This data is <strong>not anonymized or redacted</strong>{" "}
-        before transmission. By using {config.app.title}, you acknowledge and consent to this transfer.
-      </p>
-      <p className="text-gray-700 leading-relaxed mb-6">
-        We store <strong>structured outputs</strong> from the AI (e.g., parsed fields, categorization) in your account
-        for future use. We do <strong>not</strong> store raw AI prompts or responses beyond what&apos;s necessary to populate
-        your data.
+      <h2 className="text-2xl font-semibold text-slate-800 mb-4">4. Limitações e responsabilidade humana</h2>
+      <p className="text-slate-700 mb-6">
+        A IA é uma ferramenta de assistência. Os dados extraídos automaticamente devem ser <strong>sempre validados pelo utilizador</strong> antes de serem usados para fins fiscais (declaração de IVA, IRS, IES, exportação SAF-T). {legalEntity} não se responsabiliza por erros de classificação ou extração que não tenham sido validados antes da submissão à Autoridade Tributária.
       </p>
 
-      <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">4. Human Involvement</h2>
-      <p className="text-gray-700 leading-relaxed mb-4">
-        We do <strong>not</strong> manually review AI-generated content. There is currently no mechanism for human
-        review, error flagging, or corrections.
-      </p>
-      <p className="text-gray-700 leading-relaxed mb-6">
-        Users are solely responsible for verifying the accuracy of AI-processed outputs before using them for financial
-        or reporting purposes.
+      <h2 className="text-2xl font-semibold text-slate-800 mb-4">5. Conformidade com o AI Act europeu</h2>
+      <p className="text-slate-700 mb-6">
+        O sistema enquadra-se no Regulamento (UE) 2024/1689 (AI Act) como sistema de IA de risco limitado: aplica-se transparência (este documento) mas não requer avaliação de conformidade adicional. Os utilizadores são informados de que estão a interagir com um sistema de IA sempre que aplicável.
       </p>
 
-      <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">5. Opt-Out and Core Dependency</h2>
-      <p className="text-gray-700 leading-relaxed mb-6">
-        AI processing is a fundamental component of {config.app.title} and cannot be disabled. If you do not consent to your data
-        being processed via AI, you should not use the platform.
+      <h2 className="text-2xl font-semibold text-slate-800 mb-4">6. Os seus direitos</h2>
+      <p className="text-slate-700 mb-6">
+        Pode opor-se ao processamento por IA contactando{" "}
+        <a href={`mailto:${supportEmail}`} className="text-blue-600 hover:text-blue-800">
+          {supportEmail}
+        </a>
+        . Nesse caso, o processamento dos seus documentos passa a ser exclusivamente manual, podendo afetar a velocidade do serviço.
       </p>
 
-      <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">6. Automated Decision-Making</h2>
-      <p className="text-gray-700 leading-relaxed mb-4">
-        Our AI systems do not make binding legal or financial decisions on your behalf. However, they may suggest
-        categories, values, or summaries based on the data you provide.
-      </p>
-      <p className="text-gray-700 leading-relaxed mb-6">
-        While these outputs may influence how your data is structured or interpreted, they are{" "}
-        <strong>not used to make automated decisions with legal or significant effects</strong> as defined under GDPR
-        Article 22.
-      </p>
-
-      <h2 className="text-2xl font-semibold text-gray-800 mt-8 mb-4">7. Risks and Limitations</h2>
-      <p className="text-gray-700 leading-relaxed mb-4">
-        AI-generated outputs are probabilistic and may contain errors, omissions, or misinterpretations. We make{" "}
-        <strong>no guarantees of accuracy</strong>, completeness, or suitability for tax, legal, or financial purposes.
-      </p>
-      <p className="bg-red-50 p-4 rounded-lg border border-red-200 mb-6">
-        <strong className="text-red-600">⚠️ Important:</strong> {config.app.title} is <strong>not a substitute</strong> for a
-        certified accountant, tax advisor, or legal counsel. Use at your own risk.
+      <p className="text-slate-700 mt-8 text-sm border-t pt-4">
+        Para mais detalhes consulte a{" "}
+        <a href="/docs/privacy_policy" className="text-blue-600 hover:text-blue-800">
+          Política de Privacidade
+        </a>
+        .
       </p>
     </div>
   )

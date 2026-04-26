@@ -28,6 +28,10 @@ const envSchema = z.object({
   // AT (Autoridade Tributária)
   AT_SIGNING_PRIVATE_KEY: z.string().default(""),
   AT_CERTIFICATE_NUMBER: z.string().default("0"),
+  // Support / Legal (per-deployment overrides; defaults to BuildFlow generic)
+  SUPPORT_EMAIL: z.string().email().default("info@buildflow.pt"),
+  LEGAL_ENTITY_NAME: z.string().default("BuildFlow"),
+  LEGAL_DOMAIN: z.string().default("buildflow.pt"),
 })
 
 const env = envSchema.parse(process.env)
@@ -43,7 +47,13 @@ const config = {
     logo: isBuildFlow ? "/logo/buildflow-expenses.svg" : "/logo/logo.svg",
     version: process.env.npm_package_version || "0.0.1",
     baseURL: env.BASE_URL || `http://localhost:${env.PORT || "7331"}`,
-    supportEmail: "portal.rh@ramosferreira.com",
+    // Support email — overridable per-tenant via SUPPORT_EMAIL env var.
+    // Default falls back to BuildFlow general support; never hardcode a
+    // specific customer's email here (legal/RGPD risk: contact channel
+    // for data subject rights must belong to the data controller).
+    supportEmail: env.SUPPORT_EMAIL || "info@buildflow.pt",
+    legalEntity: env.LEGAL_ENTITY_NAME || "BuildFlow",
+    legalDomain: env.LEGAL_DOMAIN || "buildflow.pt",
   },
   upload: {
     acceptedMimeTypes: "image/*,.pdf,.doc,.docx,.xls,.xlsx",

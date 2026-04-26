@@ -63,7 +63,7 @@ export default function LandingPage() {
             </p>
             <div className="flex flex-wrap gap-3 justify-center">
               <Link
-                href="/self-hosted"
+                href="https://buildflow.pt/contact"
                 className="px-8 py-3 bg-primary text-primary-foreground font-semibold rounded-lg hover:bg-primary/90 transition-all duration-200 shadow-md hover:shadow-glow-teal text-sm"
               >
                 Começar Gratuitamente
@@ -77,12 +77,18 @@ export default function LandingPage() {
             </div>
           </div>
 
-          {/* Hero Image */}
-          <div className="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-border/50">
-            <video className="w-full h-auto" autoPlay loop muted playsInline poster="/landing/ai-scanner-big.webp">
-              <source src="/landing/video.mp4" type="video/mp4" />
-              <Image src="/landing/ai-scanner-big.webp" alt={`${config.app.title} Dashboard`} width={1728} height={1080} priority />
-            </video>
+          {/* Hero Image
+              Removed legacy TaxHacker screenshots/video. Replace with new
+              {config.app.title}-branded captures when available. The
+              /landing/*.webp + video.mp4 assets in /public/landing show
+              the upstream TaxHacker UI and must NOT be re-enabled until
+              re-shot for BuildFlow. */}
+          <div className="relative rounded-2xl overflow-hidden shadow-2xl ring-1 ring-border/50 bg-gradient-to-br from-primary/10 via-background to-primary/5 aspect-video flex items-center justify-center">
+            <div className="text-center p-12">
+              <Image src={config.app.logo} alt={config.app.title} width={96} height={96} className="mx-auto h-24 w-24 mb-6" />
+              <p className="text-2xl font-semibold text-foreground">{config.app.title}</p>
+              <p className="mt-2 text-sm text-muted-foreground">Capturas do produto em breve</p>
+            </div>
           </div>
         </div>
       </section>
@@ -204,15 +210,16 @@ export default function LandingPage() {
                 ))}
               </ul>
             </div>
-            <div className="rounded-2xl overflow-hidden shadow-xl ring-1 ring-border/50">
-              <Image src="/landing/ai-scanner.webp" alt="Analisador de Documentos IA" width={1900} height={1524} />
+            {/* Screenshot pendente — capturas a re-tirar com branding {config.app.title}. */}
+            <div className="rounded-2xl overflow-hidden shadow-xl ring-1 ring-border/50 bg-gradient-to-br from-primary/10 to-primary/5 aspect-[4/3] flex items-center justify-center">
+              <span className="text-sm text-muted-foreground">Captura em breve</span>
             </div>
           </div>
 
           {/* Multi-currency */}
           <div className="grid lg:grid-cols-2 gap-12 items-center">
-            <div className="order-2 lg:order-1 rounded-2xl overflow-hidden shadow-xl ring-1 ring-border/50">
-              <Image src="/landing/multi-currency.webp" alt="Conversor de Moedas" width={1400} height={1005} />
+            <div className="order-2 lg:order-1 rounded-2xl overflow-hidden shadow-xl ring-1 ring-border/50 bg-gradient-to-br from-primary/10 to-primary/5 aspect-[4/3] flex items-center justify-center">
+              <span className="text-sm text-muted-foreground">Captura em breve</span>
             </div>
             <div className="order-1 lg:order-2">
               <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-sm font-medium mb-4">
@@ -262,8 +269,8 @@ export default function LandingPage() {
                 ))}
               </ul>
             </div>
-            <div className="rounded-2xl overflow-hidden shadow-xl ring-1 ring-border/50">
-              <Image src="/landing/transactions.webp" alt="Tabela de Transações" width={2000} height={1279} />
+            <div className="rounded-2xl overflow-hidden shadow-xl ring-1 ring-border/50 bg-gradient-to-br from-primary/10 to-primary/5 aspect-[4/3] flex items-center justify-center">
+              <span className="text-sm text-muted-foreground">Captura em breve</span>
             </div>
           </div>
         </div>
