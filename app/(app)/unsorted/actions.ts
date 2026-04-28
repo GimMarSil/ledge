@@ -205,7 +205,11 @@ export async function splitFileIntoItemsAction(
       // Copy the original file content
       await writeFile(fullFilePath, fileContent)
 
-      // Create file record in database with the item data cached
+      // Create file record in database with the item data cached.
+      // We preserve every field from the parsed item — earlier this picked
+      // an explicit subset and silently dropped fiscal fields (NIF,
+      // documentType, documentNumber, atcud, subtotal, vatAmount), so any
+      // split transaction was un-exportable to SAFT-PT.
       await createFile(user.id, {
         id: fileUuid,
         filename: fileName,
@@ -213,19 +217,7 @@ export async function splitFileIntoItemsAction(
         mimetype: originalFile.mimetype,
         metadata: originalFile.metadata,
         isSplitted: true,
-        cachedParseResult: {
-          name: item.name,
-          merchant: item.merchant,
-          description: item.description,
-          total: item.total,
-          currencyCode: item.currencyCode,
-          categoryCode: item.categoryCode,
-          projectCode: item.projectCode,
-          type: item.type,
-          issuedAt: item.issuedAt,
-          note: item.note,
-          text: item.text,
-        },
+        cachedParseResult: { ...item, name: item.name },
       })
     }
 

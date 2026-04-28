@@ -47,6 +47,32 @@ export const transactionFormSchema = z
       .optional(),
     text: z.string().optional(),
     note: z.string().optional(),
+    // Portuguese fiscal fields. Without these listed explicitly, the
+    // analyze form had no UI input bound to them so AI-extracted values
+    // never reached the server even when the model returned them.
+    nif: z.string().max(20).optional().nullable(),
+    customerNif: z.string().max(20).optional().nullable(),
+    documentType: z.string().max(8).optional().nullable(),
+    documentNumber: z.string().max(64).optional().nullable(),
+    atcud: z.string().max(64).optional().nullable(),
+    subtotal: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((val) => {
+        if (val == null || val === "" || val === "null") return null
+        const num = parseFloat(val)
+        return isNaN(num) ? null : Math.round(num * 100)
+      }),
+    vatAmount: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((val) => {
+        if (val == null || val === "" || val === "null") return null
+        const num = parseFloat(val)
+        return isNaN(num) ? null : Math.round(num * 100)
+      }),
     items: z
       .string()
       .optional()

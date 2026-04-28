@@ -2,12 +2,12 @@
 
 import { formatBytes } from "@/lib/utils"
 import { File } from "@/prisma/client"
-import Image from "next/image"
 import Link from "next/link"
 import { useState } from "react"
 
 export function FilePreview({ file }: { file: File }) {
   const [isEnlarged, setIsEnlarged] = useState(false)
+  const [imgError, setImgError] = useState(false)
   const isPdf = file.mimetype === "application/pdf"
 
   const fileSize =
@@ -25,19 +25,24 @@ export function FilePreview({ file }: { file: File }) {
             />
           ) : (
             <>
-              <Image
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 src={`/files/preview/${file.id}`}
                 alt={file.filename}
-                width={300}
-                height={400}
                 loading="lazy"
+                onError={() => setImgError(true)}
                 className={`${
                   isEnlarged
-                    ? "fixed inset-0 z-50 m-auto w-screen h-screen object-contain cursor-zoom-out"
+                    ? "fixed inset-0 z-50 m-auto w-screen h-screen object-contain cursor-zoom-out bg-black/80"
                     : "w-full h-full object-contain cursor-zoom-in"
                 }`}
                 onClick={() => setIsEnlarged(!isEnlarged)}
               />
+              {imgError && (
+                <div className="absolute inset-4 flex items-center justify-center text-sm text-muted-foreground border border-dashed rounded">
+                  Não foi possível pré-visualizar este ficheiro
+                </div>
+              )}
               {isEnlarged && (
                 <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-40" onClick={() => setIsEnlarged(false)} />
               )}

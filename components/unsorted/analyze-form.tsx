@@ -69,6 +69,15 @@ export default function AnalyzeForm({
       note: "",
       text: "",
       items: [],
+      // Portuguese fiscal fields surfaced from the AI extraction so the
+      // SAFT-PT export and IVA report have the data they need.
+      nif: "",
+      customerNif: "",
+      documentType: "",
+      documentNumber: "",
+      atcud: "",
+      subtotal: "",
+      vatAmount: "",
     }
 
     // Add extra fields
@@ -287,6 +296,38 @@ export default function AnalyzeForm({
           required={fieldMap.note.isRequired}
         />
 
+        {/* Dados Fiscais — campos exigidos para SAFT-PT e relatórios de IVA */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-2 border-t mt-4">
+          <FormInput
+            title="Tipo de Documento"
+            name="documentType"
+            value={formData.documentType || ""}
+            onChange={(e) => setFormData((prev) => ({ ...prev, documentType: e.target.value }))}
+            placeholder="FT, FR, NC, ND, RC..."
+          />
+          <FormInput
+            title="Nº de Documento"
+            name="documentNumber"
+            value={formData.documentNumber || ""}
+            onChange={(e) => setFormData((prev) => ({ ...prev, documentNumber: e.target.value }))}
+            placeholder="Ex: FT A/123"
+          />
+          <FormInput
+            title="NIF do Fornecedor"
+            name="nif"
+            value={formData.nif || ""}
+            onChange={(e) => setFormData((prev) => ({ ...prev, nif: e.target.value }))}
+            placeholder="9 dígitos"
+          />
+        </div>
+        {/* Hidden — preserved end-to-end so the AI's extraction reaches the DB
+            even when the field is not visible in the form. */}
+        <input type="hidden" name="customerNif" value={formData.customerNif || ""} />
+        <input type="hidden" name="atcud" value={formData.atcud || ""} />
+        <input type="hidden" name="subtotal" value={formData.subtotal == null ? "" : String(formData.subtotal)} />
+        <input type="hidden" name="vatAmount" value={formData.vatAmount == null ? "" : String(formData.vatAmount)} />
+        <input type="hidden" name="vat_breakdown" value={(formData as Record<string, unknown>).vat_breakdown ? JSON.stringify((formData as Record<string, unknown>).vat_breakdown) : ""} />
+
         {extraFields.map((field) => (
           <FormInput
             key={field.code}
@@ -312,7 +353,7 @@ export default function AnalyzeForm({
 
         {formData.items && formData.items.length > 0 && (
           <ToolWindow title="Itens detetados">
-            <ItemsDetectTool file={file} data={formData} />
+            <ItemsDetectTool file={file} data={formData as unknown as import("@/models/transactions").TransactionData} />
           </ToolWindow>
         )}
 

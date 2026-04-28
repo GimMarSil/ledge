@@ -207,6 +207,38 @@ export const bulkDeleteTransactions = async (ids: string[], userId: string) => {
   })
 }
 
+// Columns that are first-class on the Transaction model. They must reach
+// `standard` even when the user has no matching Field row — otherwise
+// AI-extracted fiscal data is silently dropped before INSERT, which
+// breaks SAFT-PT and IVA reports (no NIF, no document type/number).
+const ALWAYS_STANDARD_KEYS = new Set<string>([
+  "name",
+  "merchant",
+  "description",
+  "type",
+  "total",
+  "currencyCode",
+  "convertedTotal",
+  "convertedCurrencyCode",
+  "categoryCode",
+  "projectCode",
+  "issuedAt",
+  "note",
+  "text",
+  "files",
+  // Portuguese fiscal columns
+  "nif",
+  "customerNif",
+  "documentType",
+  "documentNumber",
+  "documentSeries",
+  "atcud",
+  "subtotal",
+  "vatAmount",
+  "vatBreakdown",
+  "vat_breakdown",
+])
+
 const splitTransactionDataExtraFields = async (
   data: TransactionData,
   userId: string
@@ -224,6 +256,15 @@ const splitTransactionDataExtraFields = async (
   const extra: Record<string, unknown> = {}
 
   Object.entries(data).forEach(([key, value]) => {
+    if (ALWAYS_STANDARD_KEYS.has(key)) {
+      // vat_breakdown comes in as either alias; normalise to the model key.
+      if (key === "vat_breakdown") {
+        ;(standard as Record<string, unknown>).vatBreakdown = value
+      } else {
+        standard[key] = value
+      }
+      return
+    }
     const fieldDef = fieldMap[key]
     if (fieldDef) {
       if (fieldDef.isExtra) {
