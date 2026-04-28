@@ -35,11 +35,11 @@ RUN npm run build
 # Production stage
 FROM base
 
-# Install required system dependencies
+# Install required system dependencies. PDF rasterisation now uses
+# pdfjs-dist + @napi-rs/canvas (prebuilt native, no system deps), so
+# ghostscript and graphicsmagick are no longer required here.
 RUN apt-get update && apt-get install -y \
     ca-certificates \
-    ghostscript \
-    graphicsmagick \
     openssl \
     libwebp-dev \
     postgresql-client \

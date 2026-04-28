@@ -2,17 +2,15 @@
 
 /**
  * Extração de QR codes de faturas portuguesas a partir de PDFs e imagens.
- * Usa pdf2pic para renderizar páginas e jsQR + sharp para decodificar.
+ * Usa pdfjs-dist + @napi-rs/canvas (pure JS / prebuilt native, sem deps de
+ * SO) para rasterizar páginas e jsQR + sharp para decodificar.
  */
 
 import { QRCodeData } from "./qrcode"
 import { isPortugueseQRCode, parseQRCodeString } from "./qrcode-reader"
 import sharp from "sharp"
 import jsQR from "jsqr"
-import { fromPath } from "pdf2pic"
 import fs from "fs/promises"
-import path from "path"
-import os from "os"
 
 const QR_SCAN_DPI = 300
 const QR_SCAN_MAX_PAGES = 2
@@ -31,44 +29,74 @@ export async function extractQRCodeFromFile(filePath: string, mimetype: string):
 }
 
 /**
- * Extrai QR code de um PDF renderizando cada página a alta resolução.
+ * Extrai QR code de um PDF renderizando cada página a alta resolução em
+ * memória (sem ficheiros temporários nem dependências de SO).
  */
 async function extractQRCodeFromPdf(pdfPath: string): Promise<QRCodeData | null> {
-  const tmpDir = await fs.mkdtemp(path.join(os.tmpdir(), "qr-scan-"))
+  const data = await fs.readFile(pdfPath)
+  const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs")
+  pdfjs.GlobalWorkerOptions.workerSrc = ""
+  const { createCanvas } = await import("@napi-rs/canvas")
 
-  try {
-    const convert = fromPath(pdfPath, {
-      density: QR_SCAN_DPI,
-      saveFilename: "qr-page",
-      savePath: tmpDir,
-      format: "png",
-      width: QR_SCAN_MAX_SIZE,
-      height: QR_SCAN_MAX_SIZE,
-      preserveAspectRatio: true,
-    })
-
-    // Render and scan pages sequentially (stop on first QR found)
-    for (let page = 1; page <= QR_SCAN_MAX_PAGES; page++) {
-      try {
-        const result = await convert(page, { responseType: "image" })
-        if (!result || !result.path) continue
-
-        const qrData = await decodeQRFromImage(result.path)
-        if (qrData) return qrData
-      } catch {
-        // Page may not exist (e.g., 1-page PDF scanning page 2) — skip
-        continue
+  // pdfjs v4 wants a *class* it can `new`, not an object literal.
+  class NodeCanvasFactory {
+    create(w: number, h: number) {
+      const c = createCanvas(w, h)
+      return {
+        canvas: c as unknown as HTMLCanvasElement,
+        context: c.getContext("2d") as unknown as CanvasRenderingContext2D,
       }
     }
+    reset(canvasAndContext: { canvas: { width: number; height: number } }, w: number, h: number) {
+      canvasAndContext.canvas.width = w
+      canvasAndContext.canvas.height = h
+    }
+    destroy(canvasAndContext: { canvas: { width: number; height: number } }) {
+      canvasAndContext.canvas.width = 0
+      canvasAndContext.canvas.height = 0
+    }
+  }
 
+  const loadingTask = pdfjs.getDocument({
+    data: new Uint8Array(data),
+    disableFontFace: true,
+    useSystemFonts: false,
+    isEvalSupported: false,
+    CanvasFactory: NodeCanvasFactory as unknown as never,
+  } as unknown as never)
+  const doc = await loadingTask.promise
+  const scale = QR_SCAN_DPI / 72
+
+  try {
+    const limit = Math.min(doc.numPages, QR_SCAN_MAX_PAGES)
+    for (let pageNo = 1; pageNo <= limit; pageNo++) {
+      const page = await doc.getPage(pageNo)
+      let viewport = page.getViewport({ scale })
+      const fit = Math.min(1, QR_SCAN_MAX_SIZE / viewport.width, QR_SCAN_MAX_SIZE / viewport.height)
+      if (fit < 1) viewport = page.getViewport({ scale: scale * fit })
+
+      const width = Math.ceil(viewport.width)
+      const height = Math.ceil(viewport.height)
+      const canvas = createCanvas(width, height)
+      const ctx = canvas.getContext("2d")
+      await page.render({
+        canvasContext: ctx as unknown as CanvasRenderingContext2D,
+        viewport,
+      }).promise
+
+      const png = await canvas.encode("png")
+      const qrData = await decodeQRFromBuffer(png)
+      page.cleanup()
+      if (qrData) {
+        await doc.cleanup()
+        await doc.destroy()
+        return qrData
+      }
+    }
     return null
   } finally {
-    // Cleanup temp files
-    try {
-      await fs.rm(tmpDir, { recursive: true, force: true })
-    } catch {
-      // Non-critical cleanup failure
-    }
+    await doc.cleanup()
+    await doc.destroy()
   }
 }
 
@@ -90,8 +118,12 @@ async function extractQRCodeFromImage(imagePath: string): Promise<QRCodeData | n
  * 5. Validar se é QR code e-fatura e fazer parse
  */
 async function decodeQRFromImage(imagePath: string): Promise<QRCodeData | null> {
+  return decodeQRFromBuffer(await fs.readFile(imagePath))
+}
+
+async function decodeQRFromBuffer(input: Buffer): Promise<QRCodeData | null> {
   try {
-    const { data, info } = await sharp(imagePath)
+    const { data, info } = await sharp(input)
       .greyscale()
       .normalise()
       .ensureAlpha()

@@ -57,7 +57,38 @@ export const auth = betterAuth({
         if (!user) {
           throw new APIError("NOT_FOUND", { message: "User with this email does not exist" })
         }
-        await sendOTPCodeEmail({ email, otp })
+
+        // In dev / when Resend is not configured, log the OTP so the
+        // developer can grab it from the terminal instead of waiting for
+        // an email that will never arrive. The token is also written to
+        // the `verification` table by better-auth, so a determined user
+        // can also pull it from there. This prevents the silent-failure
+        // dead-end where the UI says "código enviado" but nothing arrives.
+        const apiKey = config.email.apiKey
+        const hasRealResendKey = apiKey && apiKey.startsWith("re_")
+
+        if (!hasRealResendKey) {
+          // eslint-disable-next-line no-console
+          console.warn(
+            `\n========================================\n` +
+              `[auth] OTP for ${email}: ${otp}\n` +
+              `[auth] (Resend not configured — set RESEND_API_KEY to send real emails)\n` +
+              `========================================\n`
+          )
+          return
+        }
+
+        try {
+          await sendOTPCodeEmail({ email, otp })
+        } catch (err) {
+          // Don't 500 the login flow on email send failure — log the OTP
+          // instead so the user can still get in. Production should set up
+          // monitoring on this warning.
+          // eslint-disable-next-line no-console
+          console.error(`[auth] sendOTPCodeEmail failed for ${email}, falling back to console:`, err)
+          // eslint-disable-next-line no-console
+          console.warn(`[auth] OTP for ${email}: ${otp}`)
+        }
       },
     }),
     nextCookies(), // make sure this is the last plugin in the array

@@ -50,7 +50,9 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
             <Download className="h-4 w-4" /> <span className="hidden md:block">Exportar</span>
           </ExportTransactionsDialog>
           <NewTransactionDialog>
-            <Plus className="h-4 w-4" /> <span className="hidden md:block">Nova Transação</span>
+            <Button>
+              <Plus className="h-4 w-4" /> <span className="hidden md:block">Nova Transação</span>
+            </Button>
           </NewTransactionDialog>
         </div>
       </header>

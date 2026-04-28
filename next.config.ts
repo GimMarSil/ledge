@@ -8,6 +8,12 @@ const nextConfig: NextConfig = {
   images: {
     remotePatterns: [],
   },
+  // pdfjs-dist + @napi-rs/canvas are server-only and ship a .node native
+  // binary. Without listing them as external, webpack tries to bundle the
+  // binary into the server actions chunk and the build fails with
+  // "Module parse failed: Unexpected character '\\0'". They run on the
+  // node side via require() at runtime instead.
+  serverExternalPackages: ["@napi-rs/canvas", "pdfjs-dist"],
   experimental: {
     serverActions: {
       bodySizeLimit: "32mb",
