@@ -1,6 +1,7 @@
 "use server"
 
 import { ActionState } from "@/lib/actions"
+import { emitUsage } from "@/lib/buildflow/usage"
 import { updateFile } from "@/models/files"
 import { getLLMSettings, getSettings } from "@/models/settings"
 import { AnalyzeAttachment } from "./attachments"
@@ -39,6 +40,14 @@ export async function analyzeTransaction(
     console.log("LLM tokens used:", tokensUsed)
 
     await updateFile(fileId, userId, { cachedParseResult: result })
+
+    emitUsage({ userId, metric: "documents.processed", value: 1, metadata: { fileId } })
+    if (tokensUsed > 0) {
+      emitUsage({ userId, metric: "ai.tokens", value: tokensUsed, metadata: { fileId } })
+    }
+    if (attachments.length > 0) {
+      emitUsage({ userId, metric: "ai.pages", value: attachments.length, metadata: { fileId } })
+    }
 
     return {
       success: true,

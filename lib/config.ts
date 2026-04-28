@@ -33,7 +33,7 @@ const envSchema = z.object({
   // upstream "Ledge" identity. Only set to "false" if running upstream.
   BUILDFLOW_MODULE: z.enum(["true", "false"]).default("true"),
   BUILDFLOW_API_KEY: z.string().default(""),
-  CONTROLHUB_URL: z.string().url().default("https://controlhub.buildflow.pt"),
+  CONTROLHUB_URL: z.string().url().default("https://hub.buildflow.pt"),
   // AT (Autoridade Tributária)
   AT_SIGNING_PRIVATE_KEY: z.string().default(""),
   AT_CERTIFICATE_NUMBER: z.string().default("0"),

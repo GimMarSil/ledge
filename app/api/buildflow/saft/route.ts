@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
+import { emitUsage } from "@/lib/buildflow/usage"
 import { authenticateBuildFlowRequest } from "../middleware"
 import { generateSAFTData, saftToXML } from "@/lib/fiscal/saft/saft-generator"
 
@@ -43,6 +44,13 @@ export async function GET(request: Request) {
   })
 
   const xml = saftToXML(saftData)
+
+  emitUsage({
+    userId,
+    metric: "saft.exports",
+    value: 1,
+    metadata: { fiscalYear, transactionCount: transactions.length },
+  })
 
   return new NextResponse(xml, {
     headers: {

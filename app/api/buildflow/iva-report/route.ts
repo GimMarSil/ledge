@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
+import { emitUsage } from "@/lib/buildflow/usage"
 import { authenticateBuildFlowRequest } from "../middleware"
 import { getDeductibilityRate } from "@/lib/fiscal/deductibility"
 
@@ -57,6 +58,13 @@ export async function GET(request: Request) {
 
   const totalCollected = Object.values(vatCollected).reduce((sum, v) => sum + v.vat, 0)
   const totalDeductible = Object.values(vatDeductible).reduce((sum, v) => sum + v.vat, 0)
+
+  emitUsage({
+    userId,
+    metric: "iva.reports",
+    value: 1,
+    metadata: { year, quarter: quarter ? parseInt(quarter) : null },
+  })
 
   return NextResponse.json({
     period: {
