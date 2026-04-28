@@ -8,6 +8,12 @@ const envSchema = z.object({
   SELF_HOSTED_MODE: z.enum(["true", "false"]).default("true"),
   OPENAI_API_KEY: z.string().optional(),
   OPENAI_MODEL_NAME: z.string().default("gpt-4o-mini"),
+  // Azure OpenAI — when OPENAI_ENDPOINT is set, the app routes ALL LLM
+  // calls through this Azure deployment and hides the per-user LLM
+  // settings panel. Operator-owned mode (we pay the bill, not the tenant).
+  OPENAI_ENDPOINT: z.string().optional(),
+  OPENAI_DEPLOYMENT: z.string().optional(),
+  OPENAI_API_VERSION: z.string().default("2025-01-01-preview"),
   GOOGLE_API_KEY: z.string().optional(),
   GOOGLE_MODEL_NAME: z.string().default("gemini-2.5-flash"),
   MISTRAL_API_KEY: z.string().optional(),
@@ -85,6 +91,14 @@ const config = {
     googleModelName: env.GOOGLE_MODEL_NAME,
     mistralApiKey: env.MISTRAL_API_KEY,
     mistralModelName: env.MISTRAL_MODEL_NAME,
+    // Azure mode — exclusive when endpoint is set
+    azure: {
+      isEnabled: !!env.OPENAI_ENDPOINT,
+      endpoint: env.OPENAI_ENDPOINT,
+      deployment: env.OPENAI_DEPLOYMENT,
+      apiVersion: env.OPENAI_API_VERSION,
+      apiKey: env.OPENAI_API_KEY,
+    },
   },
   auth: {
     secret: env.BETTER_AUTH_SECRET,

@@ -1,9 +1,10 @@
-import { ChatOpenAI } from "@langchain/openai"
+import { ChatOpenAI, AzureChatOpenAI } from "@langchain/openai"
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
 import { ChatMistralAI } from "@langchain/mistralai"
 import { BaseMessage, HumanMessage } from "@langchain/core/messages"
+import appConfig from "@/lib/config"
 
-export type LLMProvider = "openai" | "google" | "mistral"
+export type LLMProvider = "openai" | "google" | "mistral" | "azure"
 
 export interface LLMConfig {
   provider: LLMProvider
@@ -33,7 +34,17 @@ async function requestLLMUnified(config: LLMConfig, req: LLMRequest): Promise<LL
     const temperature = 0
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let model: any
-    if (config.provider === "openai") {
+    if (config.provider === "azure") {
+      // Azure OpenAI deployment — operator-owned mode.
+      const azure = appConfig.ai.azure
+      model = new AzureChatOpenAI({
+        azureOpenAIApiKey: config.apiKey,
+        azureOpenAIEndpoint: azure.endpoint,
+        azureOpenAIApiDeploymentName: azure.deployment || config.model,
+        azureOpenAIApiVersion: azure.apiVersion,
+        temperature: temperature,
+      })
+    } else if (config.provider === "openai") {
       model = new ChatOpenAI({
         apiKey: config.apiKey,
         model: config.model,

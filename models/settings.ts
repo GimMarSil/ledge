@@ -2,6 +2,7 @@ import { prisma } from "@/lib/db"
 import { PROVIDERS } from "@/lib/llm-providers"
 import { cache } from "react"
 import { LLMProvider } from "@/ai/providers/llmProvider"
+import appConfig from "@/lib/config"
 
 export type SettingsMap = Record<string, string>
 
@@ -9,6 +10,17 @@ export type SettingsMap = Record<string, string>
  * Helper to extract LLM provider settings from SettingsMap.
  */
 export function getLLMSettings(settings: SettingsMap) {
+  // Azure exclusive mode — ignore per-user settings entirely.
+  if (appConfig.ai.azure.isEnabled) {
+    return {
+      providers: [{
+        provider: "azure" as LLMProvider,
+        apiKey: appConfig.ai.azure.apiKey || "",
+        model: appConfig.ai.azure.deployment || "",
+      }],
+    }
+  }
+
   const priorities = (settings.llm_providers || "openai,google,mistral").split(",").map(p => p.trim()).filter(Boolean)
 
   const providers = priorities.map((provider) => {
