@@ -3,9 +3,8 @@
 import { useNotification } from "@/app/(app)/context"
 import { analyzeFileAction, deleteUnsortedFileAction, saveFileAsTransactionAction } from "@/app/(app)/unsorted/actions"
 import { CurrencyConverterTool } from "@/components/agents/currency-converter"
-import { ItemsDetectTool } from "@/components/agents/items-detect"
-import { VatBreakdownTable } from "@/components/agents/vat-breakdown"
 import ToolWindow from "@/components/agents/tool-window"
+import { EditableItemsTable, type EditableItem } from "@/components/unsorted/editable-items-table"
 import { FormError } from "@/components/forms/error"
 import { FormSelectCategory } from "@/components/forms/select-category"
 import { FormSelectCurrency } from "@/components/forms/select-currency"
@@ -68,7 +67,7 @@ export default function AnalyzeForm({
       issuedAt: "",
       note: "",
       text: "",
-      items: [],
+      items: [] as EditableItem[],
       // Portuguese fiscal fields surfaced from the AI extraction so the
       // SAFT-PT export and IVA report have the data they need.
       nif: "",
@@ -334,28 +333,36 @@ export default function AnalyzeForm({
             type="text"
             title={field.name}
             name={field.code}
-            value={formData[field.code as keyof typeof formData]}
+            value={formData[field.code as keyof typeof formData] as string | number | undefined}
             onChange={(e) => setFormData((prev) => ({ ...prev, [field.code]: e.target.value }))}
             hideIfEmpty={!field.isVisibleInAnalysis}
             required={field.isRequired}
           />
         ))}
 
-        {/* eslint-disable-next-line @typescript-eslint/no-explicit-any */}
-        {(formData as any).vat_breakdown && (
-          <ToolWindow title="Desdobramento de IVA">
-            <VatBreakdownTable
-              vatBreakdown={(formData as any).vat_breakdown}
-              currencyCode={formData.currencyCode || settings.default_currency}
-            />
-          </ToolWindow>
-        )}
-
-        {formData.items && formData.items.length > 0 && (
-          <ToolWindow title="Itens detetados">
-            <ItemsDetectTool file={file} data={formData as unknown as import("@/models/transactions").TransactionData} />
-          </ToolWindow>
-        )}
+        {/* Linhas editáveis com resumo IVA por taxa e verificação de
+            consistência cabeçalho ↔ linhas. Substitui o ItemsDetectTool
+            read-only e o VatBreakdownTable derivado de uma string opaca. */}
+        <ToolWindow title="Linhas da fatura">
+          <EditableItemsTable
+            items={(formData.items as EditableItem[]) || []}
+            currencyCode={formData.currencyCode || settings.default_currency}
+            headerTotal={
+              typeof formData.total === "number" ? Math.round(formData.total * 100) : null
+            }
+            onChange={(items) => setFormData((prev) => ({ ...prev, items }))}
+            onApplyToHeader={(t) => {
+              setFormData((prev) => ({
+                ...prev,
+                total: t.total / 100,
+                subtotal: String(t.subtotal / 100),
+                vatAmount: String(t.vatAmount / 100),
+                // hidden vat_breakdown input picks this up on submit
+                vat_breakdown: t.vatBreakdown as unknown as string,
+              }))
+            }}
+          />
+        </ToolWindow>
 
         <div className="hidden">
           <input type="text" name="items" value={JSON.stringify(formData.items)} readOnly />

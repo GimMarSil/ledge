@@ -63,15 +63,15 @@ export default async function UnsortedPage() {
           <Card
             key={file.id}
             id={file.id}
-            className="flex flex-row flex-wrap md:flex-nowrap justify-center items-start gap-5 p-5 bg-gradient-to-br from-violet-50/80 via-indigo-50/80 to-white border-violet-200/60 rounded-2xl"
+            className="grid grid-cols-1 xl:grid-cols-[minmax(420px,45%)_minmax(0,1fr)] gap-5 p-5 bg-gradient-to-br from-violet-50/80 via-indigo-50/80 to-white border-violet-200/60 rounded-2xl"
           >
-            <div className="w-full max-w-[500px]">
+            <div className="xl:sticky xl:top-4 xl:self-start xl:max-h-[calc(100vh-2rem)] xl:overflow-auto">
               <Card>
                 <FilePreview file={file} />
               </Card>
             </div>
 
-            <div className="w-full">
+            <div className="w-full min-w-0">
               <AnalyzeForm
                 file={file}
                 categories={categories}

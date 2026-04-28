@@ -16,7 +16,10 @@ export function FilePreview({ file }: { file: File }) {
   return (
     <>
       <div className="flex flex-col gap-2 p-4 overflow-hidden">
-        <div className="aspect-[3/4]">
+        {/* PDFs: tall iframe that fills available vertical space (most useful
+            for invoices). Images: keep the 3:4 aspect so phone-shot receipts
+            don't blow out the layout. */}
+        <div className={isPdf ? "h-[min(85vh,900px)] min-h-[500px]" : "aspect-[3/4]"}>
           {isPdf ? (
             <iframe
               src={`/files/preview/${file.id}`}

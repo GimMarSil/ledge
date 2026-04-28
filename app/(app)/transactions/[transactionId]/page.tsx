@@ -31,8 +31,8 @@ export default async function TransactionPage({ params }: { params: Promise<{ tr
   const incompleteFields = incompleteTransactionFields(fields, transaction)
 
   return (
-    <div className="flex flex-wrap flex-row items-start justify-center gap-4 max-w-6xl">
-      <Card className="w-full flex-1 flex flex-col flex-wrap justify-center items-start overflow-hidden bg-gradient-to-br from-violet-50/80 via-indigo-50/80 to-white border-violet-200/60">
+    <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_minmax(420px,40%)] gap-4 w-full">
+      <Card className="flex flex-col flex-wrap justify-center items-start overflow-hidden bg-gradient-to-br from-violet-50/80 via-indigo-50/80 to-white border-violet-200/60">
         {incompleteFields.length > 0 && (
           <div className="w-full flex flex-col gap-1 rounded-md bg-yellow-50 p-5">
             <span>
@@ -75,7 +75,7 @@ export default async function TransactionPage({ params }: { params: Promise<{ tr
         </div>
       </Card>
 
-      <div className="w-1/2 max-w-[400px] space-y-4">
+      <div className="space-y-4 xl:sticky xl:top-4 xl:self-start xl:max-h-[calc(100vh-2rem)] xl:overflow-auto">
         <TransactionFiles transaction={transaction} files={files} />
       </div>
     </div>
