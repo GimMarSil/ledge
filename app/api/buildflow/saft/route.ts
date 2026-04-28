@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/db"
+import { checkEntitlement } from "@/lib/buildflow/entitlement"
 import { emitUsage } from "@/lib/buildflow/usage"
 import { authenticateBuildFlowRequest } from "../middleware"
 import { generateSAFTData, saftToXML } from "@/lib/fiscal/saft/saft-generator"
@@ -9,6 +10,15 @@ export async function GET(request: Request) {
   if (authResult instanceof NextResponse) return authResult
 
   const { userId } = authResult
+
+  const entitlement = await checkEntitlement(userId, "tax-export")
+  if (!entitlement.allowed) {
+    return NextResponse.json(
+      { error: "tax_export_not_entitled", reason: entitlement.reason },
+      { status: 402 }
+    )
+  }
+
   const { searchParams } = new URL(request.url)
 
   const fiscalYear = searchParams.get("year") || String(new Date().getFullYear())

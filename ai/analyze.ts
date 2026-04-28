@@ -1,6 +1,7 @@
 "use server"
 
 import { ActionState } from "@/lib/actions"
+import { checkEntitlement } from "@/lib/buildflow/entitlement"
 import { emitUsage } from "@/lib/buildflow/usage"
 import { updateFile } from "@/models/files"
 import { getLLMSettings, getSettings } from "@/models/settings"
@@ -21,6 +22,16 @@ export async function analyzeTransaction(
 ): Promise<ActionState<AnalysisResult>> {
   const settings = await getSettings(userId)
   const llmSettings = getLLMSettings(settings)
+
+  // Gate the LLM call before we burn tokens. receipt-ocr is the metered
+  // module that owns this action's quota and overage policy.
+  const entitlement = await checkEntitlement(userId, "receipt-ocr")
+  if (!entitlement.allowed) {
+    return {
+      success: false,
+      error: entitlementErrorMessage(entitlement.reason, entitlement.limit),
+    }
+  }
 
   try {
     const response = await requestLLM(llmSettings, {
@@ -62,5 +73,25 @@ export async function analyzeTransaction(
       success: false,
       error: error instanceof Error ? error.message : "Failed to analyze invoice",
     }
+  }
+}
+
+function entitlementErrorMessage(
+  reason: string,
+  limit: number | null
+): string {
+  switch (reason) {
+    case "tenant_suspended":
+      return "A subscrição da sua conta está suspensa. Contacte o suporte."
+    case "not_subscribed":
+      return "O seu plano actual não inclui processamento automático de documentos. Faça upgrade para continuar."
+    case "disabled":
+      return "Esta funcionalidade está desactivada na sua conta."
+    case "quota_exceeded":
+      return limit
+        ? `Atingiu o limite mensal de ${limit} documentos do seu plano. Faça upgrade ou aguarde pelo próximo ciclo.`
+        : "Atingiu o limite mensal do seu plano."
+    default:
+      return "Não autorizado a processar este documento."
   }
 }
