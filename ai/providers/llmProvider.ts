@@ -1,4 +1,4 @@
-import { ChatOpenAI, AzureChatOpenAI } from "@langchain/openai"
+import { ChatOpenAI } from "@langchain/openai"
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai"
 import { ChatMistralAI } from "@langchain/mistralai"
 import { BaseMessage, HumanMessage } from "@langchain/core/messages"
@@ -36,13 +36,32 @@ async function requestLLMUnified(config: LLMConfig, req: LLMRequest): Promise<LL
     let model: any
     if (config.provider === "azure") {
       // Azure OpenAI deployment — operator-owned mode.
+      // NOTE: we use ChatOpenAI directly (not AzureChatOpenAI) because in
+      // @langchain/openai@0.6.1 the ChatOpenAI proxy creates inner
+      // ChatOpenAIResponses/ChatOpenAICompletions instances that do NOT
+      // inherit the Azure overrides — every call ends up hitting
+      // api.openai.com instead of the Azure endpoint. We work around it by
+      // pointing the underlying OpenAI client at the Azure deployment URL
+      // directly and swapping `Authorization: Bearer` for `api-key`.
       const azure = appConfig.ai.azure
-      model = new AzureChatOpenAI({
-        azureOpenAIApiKey: config.apiKey,
-        azureOpenAIEndpoint: azure.endpoint,
-        azureOpenAIApiDeploymentName: azure.deployment || config.model,
-        azureOpenAIApiVersion: azure.apiVersion,
-        temperature: temperature,
+      const deployment = azure.deployment || config.model
+      const azureBaseURL = `${(azure.endpoint || "").replace(/\/$/, "")}/openai/deployments/${deployment}`
+      // Reasoning models (o1, o3, o4, …) reject temperature ≠ 1 — omit it.
+      const isReasoning = /^o\d/i.test(deployment)
+      model = new ChatOpenAI({
+        apiKey: config.apiKey,
+        model: deployment,
+        ...(isReasoning ? {} : { temperature }),
+        configuration: {
+          baseURL: azureBaseURL,
+          defaultQuery: { "api-version": azure.apiVersion },
+          defaultHeaders: {
+            "api-key": config.apiKey,
+            // null deletes the auto-added `Authorization: Bearer …` header
+            // (the Azure endpoint rejects Bearer auth on api-key resources)
+            Authorization: null as unknown as string,
+          },
+        },
       })
     } else if (config.provider === "openai") {
       model = new ChatOpenAI({
