@@ -27,8 +27,22 @@ const ITEM_VAT_FIELDS: Record<string, { type: string; description: string }> = {
   },
 }
 
-// Fiscal fields extracted at document level (always included in schema)
+// Fiscal fields extracted at document level (always included in schema).
+// Forced into the JSON schema regardless of which Field rows the tenant
+// has — without this the Portuguese fiscal data we surface in the form
+// (NIF, document type, ATCUD) was being silently dropped on tenants
+// whose default field catalog hadn't been seeded with these entries.
 const FISCAL_FIELDS: Record<string, { type: string; description: string }> = {
+  nif: {
+    type: "string",
+    description:
+      "NIF / VAT ID do FORNECEDOR (emissor da fatura), tal como impresso. Aceitar qualquer formato fiscal: NIF PT (9 dígitos), 'VAT Reg. No.' UE (ex: 'IE 8256796 U', 'ES B12345678'), 'TVA' francês, etc. Devolver SEM o prefixo do país. Não confundir com o NIF do cliente.",
+  },
+  customerNif: {
+    type: "string",
+    description:
+      "NIF / VAT ID do CLIENTE (a quem a fatura é emitida). Mesmas regras de formato do NIF do fornecedor. Pode estar em branco se o documento for um recibo simples sem identificação do adquirente.",
+  },
   documentType: {
     type: "string",
     description:
