@@ -5,6 +5,7 @@ import { checkEntitlement } from "@/lib/buildflow/entitlement"
 import { emitUsage } from "@/lib/buildflow/usage"
 import { updateFile } from "@/models/files"
 import { getLLMSettings, getSettings } from "@/models/settings"
+import { getUserById } from "@/models/users"
 import { AnalyzeAttachment } from "./attachments"
 import { requestLLM } from "./providers/llmProvider"
 
@@ -47,6 +48,24 @@ export async function analyzeTransaction(
     const result = response.output
     const tokensUsed = response.tokensUsed || 0
 
+    // Defensive swap: LLMs frequently flip supplier and customer NIFs on
+    // PT invoices because the customer NIF (the user's own company) is
+    // printed in large text near the address block. If the extracted
+    // supplier NIF equals the user's businessNif, we know it's wrong —
+    // move it to customerNif and, if the customer slot held a different
+    // value, promote that to the supplier slot.
+    const user = await getUserById(userId)
+    const businessNif = digitsOnly(user?.businessNif)
+    if (businessNif) {
+      const supplier = digitsOnly(result.nif)
+      const customer = digitsOnly(result.customerNif)
+      if (supplier && supplier === businessNif) {
+        const promoted = customer && customer !== businessNif ? result.customerNif : ""
+        result.customerNif = result.nif
+        result.nif = promoted
+      }
+    }
+
     console.log("LLM response:", result)
     console.log("LLM tokens used:", tokensUsed)
 
@@ -74,6 +93,11 @@ export async function analyzeTransaction(
       error: error instanceof Error ? error.message : "Failed to analyze invoice",
     }
   }
+}
+
+function digitsOnly(value: unknown): string {
+  if (typeof value !== "string") return ""
+  return value.replace(/\D/g, "")
 }
 
 function entitlementErrorMessage(

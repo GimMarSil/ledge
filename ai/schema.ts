@@ -36,12 +36,12 @@ const FISCAL_FIELDS: Record<string, { type: string; description: string }> = {
   nif: {
     type: "string",
     description:
-      "NIF / VAT ID do FORNECEDOR (emissor da fatura), tal como impresso. Aceitar qualquer formato fiscal: NIF PT (9 dígitos), 'VAT Reg. No.' UE (ex: 'IE 8256796 U', 'ES B12345678'), 'TVA' francês, etc. Devolver SEM o prefixo do país. Não confundir com o NIF do cliente.",
+      "NIF / VAT ID do FORNECEDOR — quem EMITIU a fatura, normalmente no topo (cabeçalho/logo). Procura termos como 'Vendedor', 'Emissor', 'From', 'Bill from', 'Sold by', 'VAT Reg. No.', 'TVA', 'IVA Nº' associados ao nome da empresa que cobra. Aceitar qualquer formato fiscal (NIF PT 9 dígitos, 'IE 8256796 U', 'ES B12345678', 'FR 12345678901', etc.). Devolver SEM o prefixo de país e sem espaços. NUNCA usar o NIF que aparece junto a 'Cliente'/'Adquirente'/'Bill to'/'A:'. Em caso de dúvida entre dois NIFs, escolhe o que está MAIS PRÓXIMO do nome no cabeçalho.",
   },
   customerNif: {
     type: "string",
     description:
-      "NIF / VAT ID do CLIENTE (a quem a fatura é emitida). Mesmas regras de formato do NIF do fornecedor. Pode estar em branco se o documento for um recibo simples sem identificação do adquirente.",
+      "NIF / VAT ID do CLIENTE / ADQUIRENTE — a quem a fatura é EMITIDA. Procura termos como 'Cliente', 'Adquirente', 'Bill to', 'Cobrar a', 'Contribuinte n.º' na zona de morada do destinatário. Mesmas regras de formato. Pode ficar em branco se o documento for um recibo simples sem identificação do adquirente. NUNCA repetir o NIF do fornecedor.",
   },
   documentType: {
     type: "string",
