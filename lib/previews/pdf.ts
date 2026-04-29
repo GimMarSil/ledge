@@ -75,9 +75,11 @@ async function rasterisePdf(data: Buffer, opts: RasteriseOpts): Promise<Buffer[]
   // legacy fake-worker loader can require it. (Empty string here used
   // to throw "Setting up fake worker failed: No GlobalWorkerOptions
   // .workerSrc specified.")
-  const { createRequire } = await import("module")
-  const req = createRequire(import.meta.url)
-  pdfjs.GlobalWorkerOptions.workerSrc = req.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs")
+  // eval('require') sidesteps Next.js's webpack rewrite so we get the
+  // real Node CJS require — pdfjs-dist is also in serverExternalPackages.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const nodeRequire: NodeJS.Require = eval("require")
+  pdfjs.GlobalWorkerOptions.workerSrc = nodeRequire.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs")
 
   const { createCanvas } = await import("@napi-rs/canvas")
 

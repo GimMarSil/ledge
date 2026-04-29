@@ -35,11 +35,11 @@ export async function extractQRCodeFromFile(filePath: string, mimetype: string):
 async function extractQRCodeFromPdf(pdfPath: string): Promise<QRCodeData | null> {
   const data = await fs.readFile(pdfPath)
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs")
-  // See lib/previews/pdf.ts for why we resolve to a real path instead
-  // of leaving workerSrc as an empty string.
-  const { createRequire } = await import("module")
-  const req = createRequire(import.meta.url)
-  pdfjs.GlobalWorkerOptions.workerSrc = req.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs")
+  // See lib/previews/pdf.ts for why we resolve to a real path and use
+  // eval('require') to dodge Next.js webpack rewrites.
+  // eslint-disable-next-line @typescript-eslint/no-require-imports
+  const nodeRequire: NodeJS.Require = eval("require")
+  pdfjs.GlobalWorkerOptions.workerSrc = nodeRequire.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs")
   const { createCanvas } = await import("@napi-rs/canvas")
 
   // pdfjs v4 wants a *class* it can `new`, not an object literal.

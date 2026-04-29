@@ -1,9 +1,10 @@
 name: Build and Publish Latest Docker Image
 
 on:
-  push:
-    branches:
-      - main
+  # Manual only — we deploy via .github/workflows/deploy.yml which builds
+  # the image directly on the Hetzner VPS. Publishing a duplicate to
+  # GHCR on every push wasted CI minutes and confused the deploy logs.
+  workflow_dispatch:
 
 jobs:
   build-and-push:
