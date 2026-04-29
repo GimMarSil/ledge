@@ -241,6 +241,7 @@ const ALWAYS_STANDARD_KEYS = new Set<string>([
   "treasuryAccountCode",
   "reimbursementStatus",
   "reimbursementPaidAt",
+  "importBatchId",
 ])
 
 const splitTransactionDataExtraFields = async (

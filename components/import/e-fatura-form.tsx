@@ -53,10 +53,10 @@ export function EFaturaImportForm() {
             )}
           </ul>
           <Link
-            href="/transactions"
+            href={`/import/e-fatura/${state.data.batchId}`}
             className="mt-3 inline-block text-emerald-900 underline"
           >
-            Ver transações →
+            Abrir lote para classificar →
           </Link>
         </div>
       )}

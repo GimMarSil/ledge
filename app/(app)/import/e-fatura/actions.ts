@@ -2,28 +2,18 @@
 
 import { ActionState } from "@/lib/actions"
 import { getCurrentUser } from "@/lib/auth"
+import { prisma } from "@/lib/db"
 import { parseEFaturaCsv } from "@/lib/efatura"
-import { createTransaction } from "@/models/transactions"
+import { Prisma } from "@/prisma/client"
 import { revalidatePath } from "next/cache"
 
 export type EFaturaImportSummary = {
+  batchId: string
   imported: number
   skipped: number
   errors: { line: number; reason: string }[]
 }
 
-/**
- * Imports the AT e-Fatura CSV: each row becomes a Transaction stub
- * with the fiscal fields pre-filled (supplier NIF, document type/nr,
- * ATCUD, total, IVA, subtotal). The user can later attach the actual
- * receipt PDF by uploading it and linking, or the system will match
- * by ATCUD if available.
- *
- * "skipped" counts rows we ignored because the user already has a
- * transaction with the same supplierNif + documentNumber — keeps the
- * flow idempotent so the user can re-import each quarter without
- * creating duplicates.
- */
 export async function importEFaturaAction(
   _prevState: ActionState<EFaturaImportSummary> | null,
   formData: FormData
@@ -35,9 +25,8 @@ export async function importEFaturaAction(
     return { success: false, error: "Sem ficheiro" }
   }
 
-  // The AT portal exports as Windows-1252 ("ANSI"). Try UTF-8 first
-  // (some browsers re-encode) and fall back to latin1 when we see the
-  // Â/ encoding garbage that signals a mis-decode.
+  // The AT portal exports as Windows-1252. Try UTF-8 first; fall back
+  // to latin1 when we see the Â/Ã garbage that signals a mis-decode.
   const buf = Buffer.from(await file.arrayBuffer())
   let text = buf.toString("utf8")
   if (text.includes("Ã") || text.includes("Â")) {
@@ -54,60 +43,147 @@ export async function importEFaturaAction(
     }
   }
 
-  // Build a single dedupe lookup using the supplier NIF + document
-  // number pair — that's how the AT portal identifies an invoice.
-  const { prisma } = await import("@/lib/db")
+  // Global dedupe: catch invoices we already created (manually or in a
+  // previous import). Key is supplier NIF + document number — that's
+  // how the AT portal itself uniquely identifies an invoice.
   const existing = await prisma.transaction.findMany({
     where: {
       userId: user.id,
-      OR: rows.map((r) => ({
-        nif: r.supplierNif,
-        documentNumber: r.documentNumber,
-      })),
+      OR: rows.map((r) => ({ nif: r.supplierNif, documentNumber: r.documentNumber })),
     },
     select: { nif: true, documentNumber: true },
   })
   const existingKey = new Set(existing.map((t) => `${t.nif}|${t.documentNumber}`))
 
+  // Create the batch up front so transactions can link back to it.
+  // We update the counts at the end; if the request blows up midway we
+  // still have a record of the partial run.
+  const batch = await prisma.importBatch.create({
+    data: {
+      user: { connect: { id: user.id } },
+      source: "e-fatura",
+      filename: file.name,
+    },
+  })
+
   let imported = 0
   let skipped = 0
+  const txErrors: { line: number; reason: string }[] = [...errors]
+
   for (const row of rows) {
     const key = `${row.supplierNif}|${row.documentNumber}`
     if (existingKey.has(key)) {
       skipped++
       continue
     }
+    existingKey.add(key) // also dedupe within the file itself
+
     try {
-      await createTransaction(user.id, {
-        name: `${row.supplierName} ${row.documentNumber}`.trim(),
-        merchant: row.supplierName,
-        type: "expense",
-        nif: row.supplierNif,
-        customerNif: user.businessNif || null,
-        documentType: row.documentType === "OTHER" ? null : row.documentType,
-        documentNumber: row.documentNumber,
-        atcud: row.atcud,
-        issuedAt: row.issuedAt,
-        total: row.totalCents,
-        vatAmount: row.vatCents,
-        subtotal: row.subtotalCents,
-        currencyCode: "EUR",
-        // Personal account by default — the user will reclassify the
-        // company-paid ones in /reimbursements via bulk select.
-        treasuryAccountCode: "personal",
-        // Marks it as "extracted from a fiscal authority" so the user
-        // knows the totals match what's already on AT and the doc is
-        // legally valid.
-        fiscalStatus: "registered",
+      await prisma.transaction.create({
+        data: {
+          userId: user.id,
+          name: `${row.supplierName} ${row.documentNumber}`.trim(),
+          merchant: row.supplierName,
+          type: "expense",
+          nif: row.supplierNif,
+          customerNif: user.businessNif || null,
+          documentType: row.documentType === "OTHER" ? null : row.documentType,
+          documentNumber: row.documentNumber,
+          atcud: row.atcud,
+          issuedAt: row.issuedAt,
+          total: row.totalCents,
+          vatAmount: row.vatCents,
+          subtotal: row.subtotalCents,
+          currencyCode: "EUR",
+          treasuryAccountCode: "personal",
+          fiscalStatus: "registered",
+          importBatchId: batch.id,
+        } as Prisma.TransactionUncheckedCreateInput,
       })
       imported++
     } catch (e) {
-      errors.push({ line: 0, reason: `${row.supplierName} ${row.documentNumber}: ${(e as Error).message}` })
+      txErrors.push({
+        line: 0,
+        reason: `${row.supplierName} ${row.documentNumber}: ${(e as Error).message}`,
+      })
     }
   }
+
+  await prisma.importBatch.update({
+    where: { id: batch.id },
+    data: { importedCount: imported, skippedCount: skipped },
+  })
 
   revalidatePath("/transactions")
   revalidatePath("/import/e-fatura")
 
-  return { success: true, data: { imported, skipped, errors } }
+  return {
+    success: true,
+    data: { batchId: batch.id, imported, skipped, errors: txErrors },
+  }
+}
+
+/**
+ * Bulk-edit every transaction in a batch (or just the selected ones).
+ * Empty/null fields in `patch` are ignored so the user can update one
+ * field at a time without nulling out the others.
+ */
+export async function bulkEditBatchAction(
+  batchId: string,
+  patch: {
+    categoryCode?: string | null
+    projectCode?: string | null
+    treasuryAccountCode?: string | null
+    description?: string | null
+    note?: string | null
+  },
+  transactionIds?: string[]
+) {
+  const user = await getCurrentUser()
+  const data: Prisma.TransactionUpdateManyMutationInput = {}
+  if (patch.categoryCode !== undefined) data.categoryCode = patch.categoryCode || null
+  if (patch.projectCode !== undefined) data.projectCode = patch.projectCode || null
+  if (patch.treasuryAccountCode !== undefined) data.treasuryAccountCode = patch.treasuryAccountCode || null
+  if (patch.description !== undefined && patch.description) data.description = patch.description
+  if (patch.note !== undefined && patch.note) data.note = patch.note
+
+  if (Object.keys(data).length === 0) {
+    return { success: false, error: "Nada para atualizar" }
+  }
+
+  const where: Prisma.TransactionWhereInput = {
+    userId: user.id,
+    importBatchId: batchId,
+  }
+  if (transactionIds && transactionIds.length) {
+    where.id = { in: transactionIds }
+  }
+
+  const result = await prisma.transaction.updateMany({ where, data })
+  revalidatePath(`/import/e-fatura/${batchId}`)
+  return { success: true, count: result.count }
+}
+
+/**
+ * Hard-delete every transaction in a batch and the batch row itself.
+ * Used to roll back an import that came in wrong (e.g. wrong period).
+ */
+export async function deleteBatchAction(batchId: string) {
+  const user = await getCurrentUser()
+  // Verify ownership first so we don't accidentally delete another
+  // tenant's batch on a stale URL.
+  const batch = await prisma.importBatch.findFirst({
+    where: { id: batchId, userId: user.id },
+    select: { id: true },
+  })
+  if (!batch) {
+    return { success: false, error: "Lote não encontrado" }
+  }
+  await prisma.transaction.deleteMany({
+    where: { userId: user.id, importBatchId: batchId },
+  })
+  await prisma.importBatch.delete({ where: { id: batchId } })
+  revalidatePath("/import/e-fatura")
+  revalidatePath("/transactions")
+  return { success: true }
 }

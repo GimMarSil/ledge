@@ -50,6 +50,7 @@ model User {
   fiscalEntities      FiscalEntity[]
   taxTables           TaxTable[]
   treasuryAccounts    TreasuryAccount[]
+  importBatches       ImportBatch[]
 
   @@map("users")
 }
@@ -222,6 +223,10 @@ model Transaction {
   // Treasury / reimbursement
   treasuryAccount       TreasuryAccount? @relation(fields: [treasuryAccountCode, userId], references: [code, userId])
   treasuryAccountCode   String?   @map("treasury_account_code")
+  // Bulk import provenance — set when the row was created by an
+  // import (e.g. e-Fatura CSV). Null for manually entered transactions.
+  importBatch           ImportBatch? @relation(fields: [importBatchId], references: [id], onDelete: SetNull)
+  importBatchId         String?   @map("import_batch_id") @db.Uuid
   // pending | approved | paid | rejected — only meaningful when the
   // treasury account is of type "personal" (otherwise the company paid
   // directly and there is nothing to reimburse).
@@ -241,7 +246,26 @@ model Transaction {
   @@index([fiscalStatus])
   @@index([treasuryAccountCode])
   @@index([reimbursementStatus])
+  @@index([importBatchId])
   @@map("transactions")
+}
+
+// Tracks a single import run (e.g. one e-Fatura CSV) so the user can
+// review, bulk-edit or roll back everything that came in together.
+model ImportBatch {
+  id            String        @id @default(uuid()) @db.Uuid
+  userId        String        @map("user_id") @db.Uuid
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  source        String        // "e-fatura" | "csv" | future sources
+  filename      String?
+  importedCount Int           @default(0) @map("imported_count")
+  skippedCount  Int           @default(0) @map("skipped_count")
+  createdAt     DateTime      @default(now()) @map("created_at")
+  transactions  Transaction[]
+
+  @@index([userId])
+  @@index([source])
+  @@map("import_batches")
 }
 
 // Contas de tesouraria — bank/cash accounts that can pay an expense.
