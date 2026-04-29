@@ -72,7 +72,12 @@ jobs:
             cd ${{ env.SERVER_PATH }}
 
             # Remove files that should not be on server
-            rm -rf node_modules .next .git .env .env.local .env.development data pgdata prisma/client
+            # NEVER include `data` or `pgdata` here — those are the live
+            # bind-mount volumes for app uploads and the postgres database.
+            # Wiping them on every deploy nuked the prod DB (schema +
+            # migrations + users) and produced a long string of "column X
+            # does not exist" errors that looked like schema drift.
+            rm -rf node_modules .next .git .env .env.local .env.development prisma/client
 
             # Verify .env.production exists on server
             if [ ! -f .env.production ]; then
