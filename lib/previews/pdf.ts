@@ -70,9 +70,14 @@ type RasteriseOpts = {
 async function rasterisePdf(data: Buffer, opts: RasteriseOpts): Promise<Buffer[]> {
   // pdfjs-dist v4 ships ESM under /legacy/build for node compat.
   const pdfjs = await import("pdfjs-dist/legacy/build/pdf.mjs")
-  // Disable workers — node has no worker_threads bridge by default and the
-  // sync path is fast enough for invoice-sized PDFs.
-  pdfjs.GlobalWorkerOptions.workerSrc = ""
+  // pdfjs always boots a "fake worker" in node and refuses to start if
+  // workerSrc is empty. Resolve the worker file to a real path so the
+  // legacy fake-worker loader can require it. (Empty string here used
+  // to throw "Setting up fake worker failed: No GlobalWorkerOptions
+  // .workerSrc specified.")
+  const { createRequire } = await import("module")
+  const req = createRequire(import.meta.url)
+  pdfjs.GlobalWorkerOptions.workerSrc = req.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs")
 
   const { createCanvas } = await import("@napi-rs/canvas")
 

@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(ssh root@77.42.26.248 \"docker logs*)",
+      "Bash(ssh root@77.42.26.248 \"docker inspect*)",
+      "Bash(ssh root@77.42.26.248 \"docker ps*)",
+      "Bash(ssh root@77.42.26.248 'docker logs*)",
+      "Bash(ssh root@77.42.26.248 'docker inspect*)",
+      "Bash(ssh root@77.42.26.248 'docker ps*)",
+      "Bash(ssh -o BatchMode=yes root@77.42.26.248 \"docker logs*)",
+      "Bash(ssh -o BatchMode=yes root@77.42.26.248 \"docker inspect*)",
+      "Bash(ssh -o BatchMode=yes root@77.42.26.248 \"docker ps*)",
+      "Bash(npx tsc*)",
+      "Bash(curl -s https://api.github.com/repos/GimMarSil/*)",
+      "Bash(curl https://api.github.com/repos/GimMarSil/*)",
+      "Bash(curl -fsSL https://api.github.com/repos/GimMarSil/*)"
+    ]
+  }
+}
