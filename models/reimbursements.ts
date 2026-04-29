@@ -1,7 +1,13 @@
 import { prisma } from "@/lib/db"
-import { Prisma, Transaction } from "@/prisma/client"
+import { Prisma } from "@/prisma/client"
 
 export type ReimbursementStatus = "pending" | "approved" | "paid" | "rejected"
+
+// Transaction shape with the relations we always include — keeps the
+// SEPA/CSV/print routes properly typed without per-call casts.
+export type ReimbursableTransaction = Prisma.TransactionGetPayload<{
+  include: { treasuryAccount: true; category: true; project: true }
+}>
 
 export type ReimbursementFilters = {
   dateFrom?: string
@@ -14,7 +20,7 @@ export type ReimbursementSummary = {
   totalCount: number
   totalAmount: number // cents
   byStatus: Record<ReimbursementStatus, { count: number; amount: number }>
-  transactions: Transaction[]
+  transactions: ReimbursableTransaction[]
 }
 
 const ZERO_BUCKET = { count: 0, amount: 0 }
