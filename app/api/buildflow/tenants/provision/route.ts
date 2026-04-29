@@ -2,6 +2,7 @@ import { NextResponse } from "next/server"
 import { headers } from "next/headers"
 import { prisma } from "@/lib/db"
 import { createUserDefaults, isDatabaseEmpty } from "@/models/defaults"
+import { ensurePersonalTreasuryAccount } from "@/models/treasury-accounts"
 
 /**
  * Provision a new tenant workspace in Despesas.
@@ -68,6 +69,10 @@ export async function POST(request: Request) {
     if (await isDatabaseEmpty(user.id)) {
       await createUserDefaults(user.id)
     }
+
+    // Every tenant gets a "personal" treasury account so out-of-pocket
+    // expenses paid by the user always have a payer to attach to.
+    await ensurePersonalTreasuryAccount(user.id, user.name)
 
     return NextResponse.json({
       success: true,

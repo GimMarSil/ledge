@@ -237,6 +237,10 @@ const ALWAYS_STANDARD_KEYS = new Set<string>([
   "vatAmount",
   "vatBreakdown",
   "vat_breakdown",
+  // Treasury / reimbursement
+  "treasuryAccountCode",
+  "reimbursementStatus",
+  "reimbursementPaidAt",
 ])
 
 const splitTransactionDataExtraFields = async (

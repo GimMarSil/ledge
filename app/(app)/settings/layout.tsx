@@ -41,6 +41,10 @@ const settingsCategories = [
     href: "/settings/currencies",
   },
   {
+    title: "Contas de Tesouraria",
+    href: "/settings/treasury",
+  },
+  {
     title: "Cópias de Segurança",
     href: "/settings/backups",
   },

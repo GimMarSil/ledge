@@ -36,6 +36,15 @@ export const categoryFormSchema = z.object({
   color: z.string().max(7).default(randomHexColor()).nullable().optional(),
 })
 
+export const treasuryAccountFormSchema = z.object({
+  name: z.string().max(128),
+  type: z.enum(["company", "personal"]).default("company"),
+  holderName: z.string().max(128).nullable().optional(),
+  iban: z.string().max(64).nullable().optional(),
+  bankName: z.string().max(128).nullable().optional(),
+  isActive: z.boolean().optional(),
+})
+
 export const fieldFormSchema = z.object({
   name: z.string().max(128),
   type: z.string().max(128).default("string"),

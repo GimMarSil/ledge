@@ -6,6 +6,7 @@ import {
   fieldFormSchema,
   projectFormSchema,
   settingsFormSchema,
+  treasuryAccountFormSchema,
 } from "@/forms/settings"
 import { userFormSchema } from "@/forms/users"
 import { ActionState } from "@/lib/actions"
@@ -16,6 +17,11 @@ import { createCategory, deleteCategory, updateCategory } from "@/models/categor
 import { createCurrency, deleteCurrency, updateCurrency } from "@/models/currencies"
 import { createField, deleteField, updateField } from "@/models/fields"
 import { createProject, deleteProject, updateProject } from "@/models/projects"
+import {
+  createTreasuryAccount,
+  deleteTreasuryAccount,
+  updateTreasuryAccount,
+} from "@/models/treasury-accounts"
 import { SettingsMap, updateSettings } from "@/models/settings"
 import { updateUser } from "@/models/users"
 import { Prisma, User } from "@/prisma/client"
@@ -243,6 +249,48 @@ export async function deleteCategoryAction(userId: string, code: string) {
     return { success: false, error: "Failed to delete category" + error }
   }
   revalidatePath("/settings/categories")
+  return { success: true }
+}
+
+export async function addTreasuryAccountAction(userId: string, data: unknown) {
+  const validatedForm = treasuryAccountFormSchema.safeParse(data)
+  if (!validatedForm.success) {
+    return { success: false, error: validatedForm.error.message }
+  }
+  try {
+    const account = await createTreasuryAccount(userId, validatedForm.data)
+    revalidatePath("/settings/treasury")
+    return { success: true, account }
+  } catch (error: unknown) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return { success: false, error: "Já existe uma conta com este código." }
+    }
+    return { success: false, error: "Falha ao criar conta de tesouraria" }
+  }
+}
+
+export async function editTreasuryAccountAction(userId: string, code: string, data: unknown) {
+  const validatedForm = treasuryAccountFormSchema.safeParse(data)
+  if (!validatedForm.success) {
+    return { success: false, error: validatedForm.error.message }
+  }
+  const account = await updateTreasuryAccount(userId, code, validatedForm.data)
+  revalidatePath("/settings/treasury")
+  return { success: true, account }
+}
+
+export async function deleteTreasuryAccountAction(userId: string, code: string) {
+  // Guard: prevent deleting the auto-seeded personal account — losing
+  // it leaves out-of-pocket expenses orphaned and breaks reimbursement.
+  if (code === "personal") {
+    return { success: false, error: "A conta pessoal não pode ser apagada." }
+  }
+  try {
+    await deleteTreasuryAccount(userId, code)
+  } catch (error) {
+    return { success: false, error: "Falha ao apagar conta de tesouraria: " + error }
+  }
+  revalidatePath("/settings/treasury")
   return { success: true }
 }
 

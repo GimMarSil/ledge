@@ -8,11 +8,12 @@ import { FormError } from "@/components/forms/error"
 import { FormSelectCategory } from "@/components/forms/select-category"
 import { FormSelectCurrency } from "@/components/forms/select-currency"
 import { FormSelectProject } from "@/components/forms/select-project"
+import { FormSelectTreasuryAccount } from "@/components/forms/select-treasury-account"
 import { FormSelectType } from "@/components/forms/select-type"
 import { FormInput, FormTextarea } from "@/components/forms/simple"
 import { Button } from "@/components/ui/button"
 import { TransactionData } from "@/models/transactions"
-import { Category, Currency, Field, Project, Transaction } from "@/prisma/client"
+import { Category, Currency, Field, Project, Transaction, TreasuryAccount } from "@/prisma/client"
 import { format } from "date-fns"
 import { Loader2, Save, Trash2 } from "lucide-react"
 import { useRouter } from "next/navigation"
@@ -25,6 +26,7 @@ export default function TransactionEditForm({
   currencies,
   fields,
   settings,
+  treasuryAccounts,
 }: {
   transaction: Transaction
   categories: Category[]
@@ -32,6 +34,7 @@ export default function TransactionEditForm({
   currencies: Currency[]
   fields: Field[]
   settings: Record<string, string>
+  treasuryAccounts: TreasuryAccount[]
 }) {
   const router = useRouter()
   const [deleteState, deleteAction, isDeleting] = useActionState(deleteTransactionAction, null)
@@ -49,6 +52,7 @@ export default function TransactionEditForm({
     type: transaction.type || "expense",
     categoryCode: transaction.categoryCode || settings.default_category,
     projectCode: transaction.projectCode || settings.default_project,
+    treasuryAccountCode: transaction.treasuryAccountCode || settings.default_treasury_account || "personal",
     issuedAt: transaction.issuedAt ? format(transaction.issuedAt, "yyyy-MM-dd") : "",
     note: transaction.note || "",
     items: transaction.items || [],
@@ -196,6 +200,15 @@ export default function TransactionEditForm({
           isRequired={fieldMap.projectCode.isRequired}
         />
       </div>
+
+      {treasuryAccounts.length > 0 && (
+        <FormSelectTreasuryAccount
+          title="Conta de Tesouraria"
+          accounts={treasuryAccounts}
+          name="treasuryAccountCode"
+          defaultValue={formData.treasuryAccountCode}
+        />
+      )}
 
       <FormTextarea
         title={fieldMap.note.name}

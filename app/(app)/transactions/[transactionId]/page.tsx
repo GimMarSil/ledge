@@ -10,6 +10,7 @@ import { getFields } from "@/models/fields"
 import { getFilesByTransactionId } from "@/models/files"
 import { getProjects } from "@/models/projects"
 import { getSettings } from "@/models/settings"
+import { getTreasuryAccounts } from "@/models/treasury-accounts"
 import { getTransactionById } from "@/models/transactions"
 import Link from "next/link"
 import { notFound } from "next/navigation"
@@ -28,6 +29,7 @@ export default async function TransactionPage({ params }: { params: Promise<{ tr
   const settings = await getSettings(user.id)
   const fields = await getFields(user.id)
   const projects = await getProjects(user.id)
+  const treasuryAccounts = await getTreasuryAccounts(user.id)
   const incompleteFields = incompleteTransactionFields(fields, transaction)
 
   return (
@@ -55,6 +57,7 @@ export default async function TransactionPage({ params }: { params: Promise<{ tr
             settings={settings}
             fields={fields}
             projects={projects}
+            treasuryAccounts={treasuryAccounts}
           />
 
           {transaction.text && (

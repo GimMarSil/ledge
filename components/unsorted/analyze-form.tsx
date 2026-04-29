@@ -9,11 +9,12 @@ import { FormError } from "@/components/forms/error"
 import { FormSelectCategory } from "@/components/forms/select-category"
 import { FormSelectCurrency } from "@/components/forms/select-currency"
 import { FormSelectProject } from "@/components/forms/select-project"
+import { FormSelectTreasuryAccount } from "@/components/forms/select-treasury-account"
 import { FormSelectType } from "@/components/forms/select-type"
 import { FormInput, FormTextarea } from "@/components/forms/simple"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Category, Currency, Field, File, Project } from "@/prisma/client"
+import { Category, Currency, Field, File, Project, TreasuryAccount } from "@/prisma/client"
 import { format } from "date-fns"
 import { ArrowDownToLine, Brain, Loader2, Trash2 } from "lucide-react"
 import { startTransition, useActionState, useMemo, useState } from "react"
@@ -25,6 +26,7 @@ export default function AnalyzeForm({
   currencies,
   fields,
   settings,
+  treasuryAccounts,
 }: {
   file: File
   categories: Category[]
@@ -32,6 +34,7 @@ export default function AnalyzeForm({
   currencies: Currency[]
   fields: Field[]
   settings: Record<string, string>
+  treasuryAccounts: TreasuryAccount[]
 }) {
   const { showNotification } = useNotification()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
@@ -75,6 +78,10 @@ export default function AnalyzeForm({
       convertedCurrencyCode: settings.default_currency,
       categoryCode: settings.default_category,
       projectCode: settings.default_project,
+      // Default to the auto-seeded "personal" account so out-of-pocket
+      // expenses are reimbursable by default. Users with a bank account
+      // configured can override per-transaction.
+      treasuryAccountCode: settings.default_treasury_account || "personal",
       issuedAt: "",
       note: "",
       text: "",
@@ -296,6 +303,17 @@ export default function AnalyzeForm({
             />
           )}
         </div>
+
+        {treasuryAccounts.length > 0 && (
+          <FormSelectTreasuryAccount
+            title="Conta de Tesouraria"
+            accounts={treasuryAccounts}
+            name="treasuryAccountCode"
+            value={formData.treasuryAccountCode}
+            onValueChange={(value) => setFormData((prev) => ({ ...prev, treasuryAccountCode: value }))}
+            placeholder="Selecionar Conta"
+          />
+        )}
 
         <FormInput
           title={f("note", "Nota").name}

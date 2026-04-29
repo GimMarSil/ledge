@@ -49,6 +49,7 @@ model User {
   documentSeries      DocumentSeries[]
   fiscalEntities      FiscalEntity[]
   taxTables           TaxTable[]
+  treasuryAccounts    TreasuryAccount[]
 
   @@map("users")
 }
@@ -218,6 +219,14 @@ model Transaction {
   fiscalStatus          String?   @default("draft") @map("fiscal_status")
   withholdingRate       Decimal?  @map("withholding_rate")
   withholdingAmount     Int?      @map("withholding_amount")
+  // Treasury / reimbursement
+  treasuryAccount       TreasuryAccount? @relation(fields: [treasuryAccountCode, userId], references: [code, userId])
+  treasuryAccountCode   String?   @map("treasury_account_code")
+  // pending | approved | paid | rejected — only meaningful when the
+  // treasury account is of type "personal" (otherwise the company paid
+  // directly and there is nothing to reimburse).
+  reimbursementStatus   String?   @default("pending") @map("reimbursement_status")
+  reimbursementPaidAt   DateTime? @map("reimbursement_paid_at")
 
   @@index([userId])
   @@index([projectCode])
@@ -230,7 +239,34 @@ model Transaction {
   @@index([documentNumber])
   @@index([nif])
   @@index([fiscalStatus])
+  @@index([treasuryAccountCode])
+  @@index([reimbursementStatus])
   @@map("transactions")
+}
+
+// Contas de tesouraria — bank/cash accounts that can pay an expense.
+// Type "company" = the business paid directly. Type "personal" = an
+// employee paid out of pocket and is owed a reimbursement.
+// Each tenant gets a default personal account auto-seeded on provision.
+model TreasuryAccount {
+  id           String        @id @default(uuid()) @db.Uuid
+  userId       String        @map("user_id") @db.Uuid
+  user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  code         String
+  name         String
+  type         String        @default("company") // "company" | "personal"
+  holderName   String?       @map("holder_name")
+  iban         String?
+  bankName     String?       @map("bank_name")
+  isActive     Boolean       @default(true) @map("is_active")
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  transactions Transaction[]
+
+  @@unique([userId, code])
+  @@index([userId])
+  @@index([type])
+  @@map("treasury_accounts")
 }
 
 model Currency {

@@ -5,10 +5,11 @@ import { FormError } from "@/components/forms/error"
 import { FormSelectCategory } from "@/components/forms/select-category"
 import { FormSelectCurrency } from "@/components/forms/select-currency"
 import { FormSelectProject } from "@/components/forms/select-project"
+import { FormSelectTreasuryAccount } from "@/components/forms/select-treasury-account"
 import { FormSelectType } from "@/components/forms/select-type"
 import { FormInput, FormTextarea } from "@/components/forms/simple"
 import { Button } from "@/components/ui/button"
-import { Category, Currency, Project } from "@/prisma/client"
+import { Category, Currency, Project, TreasuryAccount } from "@/prisma/client"
 import { format } from "date-fns"
 import { Import, Loader2 } from "lucide-react"
 import Link from "next/link"
@@ -20,11 +21,13 @@ export default function TransactionCreateForm({
   projects,
   currencies,
   settings,
+  treasuryAccounts,
 }: {
   categories: Category[]
   projects: Project[]
   currencies: Currency[]
   settings: Record<string, string>
+  treasuryAccounts: TreasuryAccount[]
 }) {
   const router = useRouter()
   const [createState, createAction, isCreating] = useActionState(createTransactionAction, null)
@@ -39,6 +42,7 @@ export default function TransactionCreateForm({
     type: settings.default_type,
     categoryCode: settings.default_category,
     projectCode: settings.default_project,
+    treasuryAccountCode: settings.default_treasury_account || "personal",
     issuedAt: format(new Date(), "yyyy-MM-dd"),
     note: "",
   })
@@ -109,6 +113,16 @@ export default function TransactionCreateForm({
           placeholder="Selecionar Projeto"
         />
       </div>
+
+      {treasuryAccounts.length > 0 && (
+        <FormSelectTreasuryAccount
+          title="Conta de Tesouraria"
+          accounts={treasuryAccounts}
+          name="treasuryAccountCode"
+          defaultValue={formData.treasuryAccountCode}
+          placeholder="Selecionar Conta"
+        />
+      )}
 
       <FormTextarea title="Nota" name="note" defaultValue={formData.note} />
 

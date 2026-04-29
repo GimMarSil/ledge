@@ -11,6 +11,7 @@ import { getCategories } from "@/models/categories"
 import { getCurrencies } from "@/models/currencies"
 import { getProjects } from "@/models/projects"
 import { getSettings } from "@/models/settings"
+import { getTreasuryAccounts } from "@/models/treasury-accounts"
 import TransactionCreateForm from "./create"
 
 export async function NewTransactionDialog({ children }: { children: React.ReactNode }) {
@@ -19,6 +20,7 @@ export async function NewTransactionDialog({ children }: { children: React.React
   const currencies = await getCurrencies(user.id)
   const settings = await getSettings(user.id)
   const projects = await getProjects(user.id)
+  const treasuryAccounts = await getTreasuryAccounts(user.id)
 
   return (
     <Dialog>
@@ -37,6 +39,7 @@ export async function NewTransactionDialog({ children }: { children: React.React
           currencies={currencies}
           settings={settings}
           projects={projects}
+          treasuryAccounts={treasuryAccounts}
         />
       </DialogContent>
     </Dialog>

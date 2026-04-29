@@ -34,6 +34,7 @@ export const transactionFormSchema = z
     convertedCurrencyCode: z.string().max(5).optional(),
     categoryCode: z.string().optional(),
     projectCode: z.string().optional(),
+    treasuryAccountCode: z.string().optional().nullable(),
     issuedAt: z
       .union([
         z.date(),
