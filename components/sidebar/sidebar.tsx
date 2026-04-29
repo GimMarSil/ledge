@@ -129,6 +129,15 @@ export function AppSidebar({
                   </SidebarMenuButton>
                 </SidebarMenuItemWithHighlight>
 
+                <SidebarMenuItemWithHighlight href="/import/e-fatura">
+                  <SidebarMenuButton asChild>
+                    <Link href="/import/e-fatura">
+                      <Import className="h-5 w-5" />
+                      <span>Importar e-Fatura</span>
+                    </Link>
+                  </SidebarMenuButton>
+                </SidebarMenuItemWithHighlight>
+
                 <SidebarMenuItemWithHighlight href="/settings">
                   <SidebarMenuButton asChild>
                     <Link href="/settings">
