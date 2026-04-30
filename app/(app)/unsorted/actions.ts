@@ -28,6 +28,41 @@ import { mkdir, readFile, rename, writeFile } from "fs/promises"
 import { revalidatePath } from "next/cache"
 import path from "path"
 
+/**
+ * Fast pre-classification using only the e-Fatura QR code on the
+ * document — no AI, no entitlement gate, no token cost. Returns the
+ * fiscal fields the QR encodes (NIF, document type, total, IVA
+ * breakdown, ATCUD, etc.) so the form can pre-fill without ever
+ * calling the LLM. Falls back gracefully when the document has no
+ * readable QR.
+ */
+export async function extractQRCodeAction(
+  file: File
+): Promise<ActionState<{ fields: Partial<TransactionData>; raw: string }>> {
+  const user = await getCurrentUser()
+  if (!file || file.userId !== user.id) {
+    return { success: false, error: "Ficheiro não encontrado" }
+  }
+  try {
+    const filePath = fullPathForFile(user, file)
+    const qrData = await extractQRCodeFromFile(filePath, file.mimetype)
+    if (!qrData) {
+      return { success: false, error: "Não foi possível ler o QR code da fatura" }
+    }
+    const raw = generateQRCodeString(qrData)
+    const fields = qrCodeDataToTransactionFields(qrData, raw)
+    // Cache the parse result so the file gets the green "Analisado"
+    // pill in /unsorted, mirroring what analyzeFileAction does.
+    await updateFile(file.id, user.id, { cachedParseResult: fields as Record<string, unknown> })
+    return { success: true, data: { fields, raw } }
+  } catch (error) {
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : "Falhou a leitura do QR code",
+    }
+  }
+}
+
 export async function analyzeFileAction(
   file: File,
   settings: Record<string, string>,
