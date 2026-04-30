@@ -30,7 +30,7 @@ export async function pdfToImages(
   // Cache hit
   const existingPages: string[] = []
   for (let i = 1; i <= config.upload.pdfs.maxPages; i++) {
-    const convertedFilePath = safePathJoin(userPreviewsDirectory, `${basename}.${i}.v4.webp`)
+    const convertedFilePath = safePathJoin(userPreviewsDirectory, `${basename}.${i}.v5.webp`)
     if (await fileExists(convertedFilePath)) {
       existingPages.push(convertedFilePath)
     } else {
@@ -52,7 +52,7 @@ export async function pdfToImages(
 
   const written: string[] = []
   for (let i = 0; i < pages.length; i++) {
-    const out = safePathJoin(userPreviewsDirectory, `${basename}.${i + 1}.v4.webp`)
+    const out = safePathJoin(userPreviewsDirectory, `${basename}.${i + 1}.v5.webp`)
     await fs.writeFile(out, pages[i])
     written.push(out)
   }
@@ -119,19 +119,18 @@ async function rasterisePdf(data: Buffer, opts: RasteriseOpts): Promise<Buffer[]
 
   const loadingTask = pdfjs.getDocument({
     data: new Uint8Array(data),
-    // Enable both system-font fallback AND pre-rendered glyph paths.
-    // Some PT invoices (e.g. PHC-generated) reference body fonts that
-    // aren't embedded — pdfjs needs to substitute via fontconfig (so we
-    // install fonts-liberation + fonts-dejavu in the Dockerfile). Keep
-    // disableFontFace=true because there's no DOM here, but set
-    // useSystemFonts=true so the substitution path actually runs.
+    // useSystemFonts=true tested and made rendering strictly worse —
+    // pdfjs in node tries to substitute via Fontconfig but the path
+    // through @napi-rs/canvas isn't wired for that, so substituted
+    // glyphs render as blank shapes (covers even text that previously
+    // worked). Stay on the path-glyph fallback that needs only
+    // standardFontDataUrl + cMaps.
     disableFontFace: true,
-    useSystemFonts: true,
+    useSystemFonts: false,
     isEvalSupported: false,
     standardFontDataUrl,
     cMapUrl,
     cMapPacked: true,
-    verbosity: 0,
     CanvasFactory: NodeCanvasFactory as unknown as never,
   } as unknown as never)
   const doc = await loadingTask.promise
