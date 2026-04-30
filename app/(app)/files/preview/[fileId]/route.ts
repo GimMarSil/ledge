@@ -7,6 +7,13 @@ import { NextResponse } from "next/server"
 import path from "path"
 import { encodeFilename } from "@/lib/utils"
 
+// Next.js App Router doesn't auto-route HEAD to GET — declare it
+// explicitly so the FilePreview can probe X-Page-Count without
+// downloading the full WebP body.
+export async function HEAD(request: Request, ctx: { params: Promise<{ fileId: string }> }) {
+  return GET(request, ctx)
+}
+
 export async function GET(request: Request, { params }: { params: Promise<{ fileId: string }> }) {
   const { fileId } = await params
   const user = await getCurrentUser()
@@ -53,6 +60,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
         // Force a revalidation each request — cheap, and the rasterised
         // pages are already cached on disk.
         "Cache-Control": "no-cache, must-revalidate",
+        // Total page count so the client can render multi-page nav
+        // without a separate round-trip. CORS-safelisted-aware: also
+        // expose it explicitly for fetch clients reading headers.
+        "X-Page-Count": String(previews.length),
+        "Access-Control-Expose-Headers": "X-Page-Count",
       },
     })
   } catch (error) {

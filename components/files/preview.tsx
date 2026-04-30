@@ -2,16 +2,35 @@
 
 import { formatBytes } from "@/lib/utils"
 import { File } from "@/prisma/client"
-import { CheckCircle2, ZoomIn, ZoomOut } from "lucide-react"
+import { CheckCircle2, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react"
 import Link from "next/link"
-import { useState } from "react"
+import { useEffect, useState } from "react"
 
 export function FilePreview({ file }: { file: File }) {
   const [isEnlarged, setIsEnlarged] = useState(false)
   const [imgError, setImgError] = useState(false)
   const [zoom, setZoom] = useState(1)
+  const [page, setPage] = useState(1)
+  const [pageCount, setPageCount] = useState(1)
   const isPdf = file.mimetype === "application/pdf"
   const isAnalyzed = !!file.cachedParseResult
+
+  // Fetch page count from the preview route's X-Page-Count header so
+  // we can render multi-page navigation. HEAD avoids pulling the WebP
+  // body just to read the count.
+  useEffect(() => {
+    let cancelled = false
+    fetch(`/files/preview/${file.id}?page=1`, { method: "HEAD" })
+      .then((r) => {
+        if (cancelled) return
+        const c = parseInt(r.headers.get("X-Page-Count") || "1", 10)
+        if (Number.isFinite(c) && c > 0) setPageCount(c)
+      })
+      .catch(() => {})
+    return () => {
+      cancelled = true
+    }
+  }, [file.id])
 
   const fileSize =
     file.metadata && typeof file.metadata === "object" && "size" in file.metadata ? Number(file.metadata.size) : 0
@@ -30,6 +49,32 @@ export function FilePreview({ file }: { file: File }) {
             </span>
           )}
           <div className="flex items-center gap-1">
+            {pageCount > 1 && (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.max(1, p - 1))}
+                  disabled={page <= 1}
+                  className="p-1 rounded hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
+                  aria-label="Previous page"
+                >
+                  <ChevronLeft className="h-4 w-4" />
+                </button>
+                <span className="text-xs tabular-nums w-12 text-center">
+                  {page}/{pageCount}
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
+                  disabled={page >= pageCount}
+                  className="p-1 rounded hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
+                  aria-label="Next page"
+                >
+                  <ChevronRight className="h-4 w-4" />
+                </button>
+                <span className="mx-1 h-4 w-px bg-border" />
+              </>
+            )}
             <button
               type="button"
               onClick={() => setZoom((z) => Math.max(0.5, z - 0.1))}
@@ -54,25 +99,24 @@ export function FilePreview({ file }: { file: File }) {
             don't blow out the layout. */}
         <div className={`overflow-auto ${isPdf ? "h-[min(85vh,900px)] min-h-[500px]" : "aspect-[3/4]"}`}>
           {isPdf ? (
-            // Default view: PDF.js viewer's #view=FitH fits the page
-            // *width* to the iframe's viewport, so the user lands on a
-            // readable document with no horizontal scroll. Zoom buttons
-            // then apply a CSS transform on top.
-            <iframe
-              src={`/files/preview/${file.id}#view=FitH`}
-              title={file.filename}
-              className="border-0 rounded"
-              style={
-                zoom === 1
-                  ? { width: "100%", height: "100%" }
-                  : {
-                      transform: `scale(${zoom})`,
-                      transformOrigin: "top left",
-                      width: `${100 / zoom}%`,
-                      height: `${100 / zoom}%`,
-                    }
-              }
-            />
+            // The /files/preview route serves rasterised WebP pages (LLM
+            // vision can't ingest application/pdf), so we render it as an
+            // <img> with explicit ?page=N navigation rather than relying
+            // on the browser PDF viewer.
+            <>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                key={page}
+                src={`/files/preview/${file.id}?page=${page}`}
+                alt={`${file.filename} — página ${page}`}
+                className="w-full max-w-full h-auto object-contain"
+                style={
+                  zoom !== 1
+                    ? { transform: `scale(${zoom})`, transformOrigin: "top left", width: `${100 / zoom}%` }
+                    : undefined
+                }
+              />
+            </>
           ) : (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}

@@ -14,7 +14,11 @@ import fs from "fs/promises"
 import path from "path"
 
 const QR_SCAN_DPI = 300
-const QR_SCAN_MAX_PAGES = 2
+// PT invoices commonly carry the e-Fatura QR on page 2 or 3 (footer of
+// a continuation page, or a "summary" page after itemised lines). Scan
+// up to 10 to match config.upload.pdfs.maxPages — the loop bails out as
+// soon as a valid QR is found, so the upper bound is mostly defensive.
+const QR_SCAN_MAX_PAGES = 10
 const QR_SCAN_MAX_SIZE = 3000
 
 /**
