@@ -12,6 +12,8 @@ export type EditableItem = {
   currencyCode?: string
   vat_rate?: number | string
   vat_amount?: number | string
+  /** Internal flag: true once the user types into the IVA cell directly. */
+  _vatManual?: boolean
   // The shape from the LLM is loose; we keep extras around so a save
   // doesn't accidentally drop fields the model emitted.
   [key: string]: unknown
@@ -98,10 +100,14 @@ export function EditableItemsTable({
               const rate = Number(item.vat_rate)
               const computedVat =
                 Number.isFinite(rate) && rate > 0 ? round2((total * rate) / (100 + rate)) : 0
-              const vatAmount =
-                item.vat_amount === undefined || item.vat_amount === ""
-                  ? computedVat
-                  : Number(item.vat_amount)
+              // Show the computed IVA when the user hasn't manually
+              // overridden the row. This includes the initial state
+              // where the AI returned vat_amount=0 (which we'd
+              // otherwise display literally as 0 even after the user
+              // picks a non-zero rate).
+              const vatAmount = item._vatManual
+                ? Number(item.vat_amount)
+                : computedVat
 
               return (
                 <tr key={i} className="border-b last:border-b-0 align-top">
@@ -126,16 +132,34 @@ export function EditableItemsTable({
                       type="number"
                       step="0.01"
                       value={total === 0 && item.total === undefined ? "" : String(item.total ?? "")}
-                      onChange={(e) =>
-                        updateItem(i, { total: e.target.value === "" ? undefined : parseFloat(e.target.value) })
-                      }
+                      onChange={(e) => {
+                        // Recompute IVA whenever the line total changes,
+                        // unless the user manually overrode it on this row.
+                        const newTotal = e.target.value === "" ? undefined : parseFloat(e.target.value)
+                        const patch: Partial<EditableItem> = { total: newTotal }
+                        if (!item._vatManual && Number.isFinite(rate) && rate > 0 && newTotal != null) {
+                          patch.vat_amount = round2((newTotal * rate) / (100 + rate))
+                        }
+                        updateItem(i, patch)
+                      }}
                       className="h-8 text-right"
                     />
                   </td>
                   <td className="py-1.5 pr-2">
                     <select
                       value={String(rate ?? 23)}
-                      onChange={(e) => updateItem(i, { vat_rate: parseFloat(e.target.value) })}
+                      onChange={(e) => {
+                        // Selecting a rate must immediately rewrite the
+                        // IVA column — that's the whole point of the
+                        // dropdown. Manual overrides are reset because
+                        // they were tied to the old rate.
+                        const newRate = parseFloat(e.target.value)
+                        const newVat =
+                          Number.isFinite(newRate) && newRate > 0 && total > 0
+                            ? round2((total * newRate) / (100 + newRate))
+                            : 0
+                        updateItem(i, { vat_rate: newRate, vat_amount: newVat, _vatManual: false })
+                      }}
                       className="h-8 w-full rounded-md border border-input bg-background px-2 text-sm"
                     >
                       {PT_VAT_RATES.map((r) => (
@@ -150,11 +174,12 @@ export function EditableItemsTable({
                       type="number"
                       step="0.01"
                       value={String(vatAmount)}
-                      onChange={(e) =>
-                        updateItem(i, {
-                          vat_amount: e.target.value === "" ? undefined : parseFloat(e.target.value),
-                        })
-                      }
+                      onChange={(e) => {
+                        // Mark the row as manually overridden so the
+                        // total-change handler stops rewriting IVA.
+                        const v = e.target.value === "" ? undefined : parseFloat(e.target.value)
+                        updateItem(i, { vat_amount: v, _vatManual: v !== undefined })
+                      }}
                       className="h-8 text-right"
                     />
                   </td>
@@ -251,7 +276,12 @@ function aggregateByRate(items: EditableItem[]) {
   for (const it of items) {
     const total = Number(it.total) || 0
     const rate = Number(it.vat_rate) || 0
-    const explicitVat = it.vat_amount === undefined || it.vat_amount === "" ? null : Number(it.vat_amount)
+    // Mirror the row renderer: only honour the stored vat_amount when
+    // the user explicitly set it, otherwise compute from total and rate.
+    const explicitVat =
+      it._vatManual && it.vat_amount !== undefined && it.vat_amount !== ""
+        ? Number(it.vat_amount)
+        : null
     const vat = explicitVat != null && Number.isFinite(explicitVat)
       ? explicitVat
       : rate > 0
