@@ -18,6 +18,7 @@ import { Category, Currency, Field, File, Project, TreasuryAccount } from "@/pri
 import { format } from "date-fns"
 import { ArrowDownToLine, Brain, Loader2, QrCode, Trash2 } from "lucide-react"
 import { startTransition, useActionState, useMemo, useState } from "react"
+import { useRouter } from "next/navigation"
 
 export default function AnalyzeForm({
   file,
@@ -36,6 +37,7 @@ export default function AnalyzeForm({
   settings: Record<string, string>
   treasuryAccounts: TreasuryAccount[]
 }) {
+  const router = useRouter()
   const { showNotification } = useNotification()
   const [isAnalyzing, setIsAnalyzing] = useState(false)
   const [analyzeStep, setAnalyzeStep] = useState<string>("")
@@ -127,16 +129,28 @@ export default function AnalyzeForm({
     setSaveError("")
     setIsSaving(true)
     startTransition(async () => {
-      const result = await saveFileAsTransactionAction(null, formData)
-      setIsSaving(false)
-
-      if (result.success) {
-        showNotification({ code: "global.banner", message: "Guardado!", type: "success" })
-        showNotification({ code: "sidebar.transactions", message: "new" })
-        setTimeout(() => showNotification({ code: "sidebar.transactions", message: "" }), 3000)
-      } else {
-        setSaveError(result.error ? result.error : "Algo correu mal...")
+      try {
+        const result = await saveFileAsTransactionAction(null, formData)
+        if (result.success) {
+          showNotification({ code: "global.banner", message: "Guardado!", type: "success" })
+          showNotification({ code: "sidebar.transactions", message: "new" })
+          setTimeout(() => showNotification({ code: "sidebar.transactions", message: "" }), 3000)
+          // The card we live inside is removed from /unsorted as soon
+          // as the file flips to isReviewed=true, so refresh the route
+          // to render the new state.
+          router.refresh()
+        } else {
+          setSaveError(result.error ? result.error : "Algo correu mal...")
+          showNotification({ code: "global.banner", message: "Falha ao guardar", type: "failed" })
+        }
+      } catch (error) {
+        // A thrown action (network error, server crash, stale Server
+        // Action id after a deploy) was leaving the spinner stuck on
+        // forever. Surface the error and unblock the button.
+        setSaveError(error instanceof Error ? error.message : "Falha ao guardar")
         showNotification({ code: "global.banner", message: "Falha ao guardar", type: "failed" })
+      } finally {
+        setIsSaving(false)
       }
     })
   }
@@ -161,6 +175,7 @@ export default function AnalyzeForm({
         merged[k] = v
       }
       setFormData((prev) => ({ ...prev, ...merged }))
+      router.refresh()
       showNotification({ code: "global.banner", message: "Pré-classificado por QR", type: "success" })
     } catch (error) {
       setAnalyzeError(error instanceof Error ? error.message : "Falha ao ler QR")
@@ -186,6 +201,11 @@ export default function AnalyzeForm({
           )
         )
         setFormData({ ...formData, ...nonEmptyFields })
+        // Refresh so the FilePreview card flips its pill from
+        // "Por analisar" to "Analisado" — the server-side
+        // updateFile(...cachedParseResult) won't reach the client
+        // otherwise.
+        router.refresh()
       }
     } catch (error) {
       setAnalyzeError(error instanceof Error ? error.message : "Falha na análise")
