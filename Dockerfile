@@ -43,6 +43,11 @@ RUN apt-get update && apt-get install -y \
     openssl \
     libwebp-dev \
     postgresql-client \
+    fontconfig \
+    fonts-liberation \
+    fonts-dejavu-core \
+    fonts-dejavu-extra \
+    && fc-cache -f \
     && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app

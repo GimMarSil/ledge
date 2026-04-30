@@ -87,7 +87,7 @@ async function extractQRCodeFromPdf(pdfPath: string): Promise<QRCodeData | null>
   const loadingTask = pdfjs.getDocument({
     data: new Uint8Array(data),
     disableFontFace: true,
-    useSystemFonts: false,
+    useSystemFonts: true,
     isEvalSupported: false,
     standardFontDataUrl,
     cMapUrl,
