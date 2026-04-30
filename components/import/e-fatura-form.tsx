@@ -5,11 +5,25 @@ import { Button } from "@/components/ui/button"
 import { Card } from "@/components/ui/card"
 import { Loader2, Upload } from "lucide-react"
 import Link from "next/link"
-import { useActionState, useRef } from "react"
+import { useRouter } from "next/navigation"
+import { useActionState, useEffect, useRef } from "react"
 
 export function EFaturaImportForm() {
+  const router = useRouter()
   const [state, action, pending] = useActionState(importEFaturaAction, null)
   const ref = useRef<HTMLFormElement>(null)
+
+  // Auto-jump to the batch review page once the import succeeds — the
+  // user kept landing on /transactions and not finding the bulk-edit
+  // toolbar that's actually on the batch detail page.
+  useEffect(() => {
+    if (state?.success && state.data?.batchId) {
+      const t = setTimeout(() => {
+        router.push(`/import/e-fatura/${state.data!.batchId}`)
+      }, 1500)
+      return () => clearTimeout(t)
+    }
+  }, [state, router])
 
   return (
     <Card className="p-6 space-y-4 max-w-2xl">
