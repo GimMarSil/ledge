@@ -4,6 +4,8 @@ import { ActionState } from "@/lib/actions"
 import { getCurrentUser } from "@/lib/auth"
 import { prisma } from "@/lib/db"
 import { parseEFaturaCsv } from "@/lib/efatura"
+import { inferVatBreakdown, VatRegion } from "@/lib/fiscal/vat-inference"
+import { getSettings } from "@/models/settings"
 import { Prisma } from "@/prisma/client"
 import { revalidatePath } from "next/cache"
 
@@ -32,6 +34,9 @@ export async function importEFaturaAction(
   if (text.includes("Ã") || text.includes("Â")) {
     text = buf.toString("latin1")
   }
+
+  const settings = await getSettings(user.id)
+  const region = (settings.default_vat_region as VatRegion) || "mainland"
 
   const { rows, errors } = parseEFaturaCsv(text)
   if (rows.length === 0) {
@@ -94,22 +99,7 @@ export async function importEFaturaAction(
           total: row.totalCents,
           vatAmount: row.vatCents,
           subtotal: row.subtotalCents,
-          // /fiscal aggregates by vatRate. The AT CSV doesn't carry a
-          // rate column, so we infer it from vatAmount / subtotal and
-          // snap to the closest standard PT rate (0, 6, 13, 23%).
-          vatRate: snapToPtVatRate(row.subtotalCents, row.vatCents),
-          // Persist a one-row breakdown too — saftexport and the
-          // dashboard prefer this shape when it's present.
-          vatBreakdown:
-            row.subtotalCents > 0 && row.vatCents > 0
-              ? [
-                  {
-                    rate: snapToPtVatRate(row.subtotalCents, row.vatCents),
-                    base: row.subtotalCents / 100,
-                    vat: row.vatCents / 100,
-                  },
-                ]
-              : Prisma.JsonNull,
+          ...vatColumnsFromInference(row.subtotalCents, row.vatCents, region),
           currencyCode: "EUR",
           treasuryAccountCode: "personal",
           fiscalStatus: "registered",
@@ -139,23 +129,24 @@ export async function importEFaturaAction(
   }
 }
 
-// Standard mainland PT VAT rates. Reduced rates differ on the islands
-// (Madeira/Açores) but the AT CSV doesn't disambiguate, so we accept a
-// small tolerance and pick the closest mainland rate.
-const PT_VAT_RATES = [0, 6, 13, 23]
-function snapToPtVatRate(baseCents: number, vatCents: number): number {
-  if (baseCents <= 0) return 0
-  const computed = (vatCents * 100) / baseCents
-  let best = 0
-  let bestDelta = Number.POSITIVE_INFINITY
-  for (const r of PT_VAT_RATES) {
-    const d = Math.abs(r - computed)
-    if (d < bestDelta) {
-      best = r
-      bestDelta = d
-    }
+// Builds the slice of TransactionCreateInput that carries the inferred
+// VAT info. Single-rate invoices write `vatRate` + a one-row
+// `vatBreakdown`; mixed-rate invoices (e.g. restaurant: comida 13%/23%
+// + bebidas 23%) write the multi-row breakdown and leave vatRate equal
+// to the effective (weighted) rate so /fiscal totals stay consistent.
+function vatColumnsFromInference(baseCents: number, vatCents: number, region: VatRegion) {
+  if (baseCents <= 0 || vatCents < 0) {
+    return { vatRate: null, vatBreakdown: Prisma.JsonNull }
   }
-  return best
+  const inf = inferVatBreakdown(baseCents, vatCents, region)
+  return {
+    vatRate: inf.confidence === "mixed" ? Math.round(inf.effectiveRate * 100) / 100 : inf.breakdown[0]?.rate ?? null,
+    vatBreakdown: inf.breakdown.map((l) => ({
+      rate: l.rate,
+      base: l.base / 100,
+      vat: l.vat / 100,
+    })) as Prisma.InputJsonValue,
+  }
 }
 
 /**

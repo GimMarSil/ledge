@@ -39,6 +39,22 @@ export default function GlobalSettingsForm({
         categories={categories}
       />
 
+      <label className="flex flex-col gap-1">
+        <span className="text-sm font-medium">Região fiscal (taxas de IVA)</span>
+        <select
+          name="default_vat_region"
+          defaultValue={settings.default_vat_region || "mainland"}
+          className="px-3 py-2 rounded-md border bg-background"
+        >
+          <option value="mainland">Continente (23 / 13 / 6 %)</option>
+          <option value="madeira">Madeira (22 / 12 / 5 %)</option>
+          <option value="azores">Açores (16 / 9 / 4 %)</option>
+        </select>
+        <span className="text-xs text-muted-foreground">
+          Usada para inferir a taxa de IVA quando o documento traz só a base e o valor do imposto (ex: import e-Fatura).
+        </span>
+      </label>
+
       <div className="flex flex-row items-center gap-4">
         <Button type="submit" disabled={pending}>
           {pending ? "A guardar..." : "Guardar Definições"}

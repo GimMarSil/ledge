@@ -208,12 +208,12 @@ export function FiscalCalendarWidget({
         {/* Natural language summary */}
         <p className="text-sm text-muted-foreground mt-1">
           {overdueDeadlines.length > 0
-            ? `Tem ${overdueDeadlines.length} obrigação${overdueDeadlines.length > 1 ? "ões" : ""} em atraso.`
+            ? `Tem ${overdueDeadlines.length} obrigaç${overdueDeadlines.length > 1 ? "ões" : "ão"} em atraso.`
             : urgentCount > 0
-              ? `Tem ${urgentCount} obrigação${urgentCount > 1 ? "ões" : ""} nos próximos 7 dias.`
+              ? `Tem ${urgentCount} obrigaç${urgentCount > 1 ? "ões" : "ão"} nos próximos 7 dias.`
               : upcomingDeadlines.length > 0
-                ? `Proxima obrigacao: ${upcomingDeadlines[0].name} em ${getDaysUntilDeadline(upcomingDeadlines[0])} dias.`
-                : "Sem obrigacoes pendentes."
+                ? `Próxima obrigação: ${upcomingDeadlines[0].name} em ${getDaysUntilDeadline(upcomingDeadlines[0])} dias.`
+                : "Sem obrigações pendentes."
           }
         </p>
       </CardHeader>
@@ -239,7 +239,7 @@ export function FiscalCalendarWidget({
               {overdueDeadlines.length > 0 && (
                 <div className="flex items-center gap-2 text-sm font-semibold text-muted-foreground mt-2">
                   <Clock className="h-4 w-4" />
-                  Proximas obrigacoes
+                  Próximas obrigações
                 </div>
               )}
               {displayDeadlines.map((deadline, i) => (
@@ -256,7 +256,7 @@ export function FiscalCalendarWidget({
             {upcomingDeadlines.length === 0 && overdueDeadlines.length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 <Calendar className="h-10 w-10 mx-auto mb-3 opacity-40" />
-                <p className="text-sm">Sem obrigacoes fiscais para este regime.</p>
+                <p className="text-sm">Sem obrigações fiscais para este regime.</p>
               </div>
             )}
           </div>

@@ -233,7 +233,7 @@ export function FiscalDashboard({
           <ul className="space-y-2 text-sm text-amber-700 dark:text-amber-300">
             {overdueDeadlines.length > 0 && (
               <li className="font-medium">
-                {overdueDeadlines.length} obrigação{overdueDeadlines.length > 1 ? "ões" : ""} fiscal{overdueDeadlines.length > 1 ? "is" : ""} em atraso
+                {overdueDeadlines.length} obrigaç{overdueDeadlines.length > 1 ? "ões" : "ão"} fiscal{overdueDeadlines.length > 1 ? "is" : ""} em atraso
               </li>
             )}
             {missingNifCount > 0 && (
@@ -243,7 +243,7 @@ export function FiscalDashboard({
             )}
             {missingDocTypeCount > 0 && (
               <li>
-                {missingDocTypeCount} transação{missingDocTypeCount > 1 ? "ões" : ""} sem tipo de documento fiscal
+                {missingDocTypeCount} transaç{missingDocTypeCount > 1 ? "ões" : "ão"} sem tipo de documento fiscal
               </li>
             )}
           </ul>

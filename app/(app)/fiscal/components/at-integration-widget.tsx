@@ -34,7 +34,7 @@ const CATEGORY_LABELS: Record<ATNewsItem["category"], { label: string; variant: 
   informacao: { label: "Info", variant: "outline" },
 }
 
-// ─── Componente de Noticias AT ─────────────────────────────────────
+// ─── Componente de Notícias AT ─────────────────────────────────────
 
 export function ATNewsWidget({ news }: { news: ATNewsItem[] }) {
   if (news.length === 0) return null
@@ -161,7 +161,7 @@ export function RegimeConfigBanner({ isConfigured }: { isConfigured: boolean }) 
         <div className="flex-1">
           <h3 className="text-sm font-semibold">Configure o seu regime fiscal</h3>
           <p className="text-xs text-muted-foreground mt-1">
-            Para ver as obrigacoes fiscais e prazos corretos para a sua situacao,
+            Para ver as obrigações fiscais e prazos corretos para a sua situação,
             configure o tipo de contribuinte da sua empresa nas definicoes.
           </p>
           <div className="flex items-center gap-3 mt-3">

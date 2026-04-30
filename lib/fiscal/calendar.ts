@@ -1,6 +1,6 @@
 /**
  * Calendario Fiscal Portugues
- * Obrigacoes e prazos legais por regime fiscal
+ * Obrigações e prazos legais por regime fiscal
  */
 
 export type BusinessRegime =
@@ -70,7 +70,7 @@ const MONTH_NAMES = [
   "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro",
 ]
 
-// ─── Obrigacoes Fiscais ────────────────────────────────────────────
+// ─── Obrigações Fiscais ────────────────────────────────────────────
 
 const FISCAL_OBLIGATIONS: FiscalObligation[] = [
   // IVA Mensal - dia 10 do 2o mes seguinte

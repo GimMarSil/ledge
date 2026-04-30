@@ -116,7 +116,7 @@ function parseATNewsHTML(html: string): ATNewsItem[] {
 }
 
 function getFallbackNews(): ATNewsItem[] {
-  // Noticias estaticas como fallback quando o fetch falha
+  // Notícias estáticas como fallback quando o fetch falha
   return [
     {
       title: "IRS 2025 - Declaração Modelo 3",
