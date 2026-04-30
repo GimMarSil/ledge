@@ -140,7 +140,11 @@ export async function bulkEditBatchAction(
   transactionIds?: string[]
 ) {
   const user = await getCurrentUser()
-  const data: Prisma.TransactionUpdateManyMutationInput = {}
+  // Unchecked variant — categoryCode/projectCode/treasuryAccountCode are
+  // relation FKs and the typed (checked) UpdateManyMutationInput doesn't
+  // expose them, only the relation `connect` form which updateMany
+  // doesn't support. Unchecked lets us write the FK column directly.
+  const data: Prisma.TransactionUncheckedUpdateManyInput = {}
   if (patch.categoryCode !== undefined) data.categoryCode = patch.categoryCode || null
   if (patch.projectCode !== undefined) data.projectCode = patch.projectCode || null
   if (patch.treasuryAccountCode !== undefined) data.treasuryAccountCode = patch.treasuryAccountCode || null
@@ -159,7 +163,10 @@ export async function bulkEditBatchAction(
     where.id = { in: transactionIds }
   }
 
-  const result = await prisma.transaction.updateMany({ where, data })
+  const result = await prisma.transaction.updateMany({
+    where,
+    data: data as Prisma.TransactionUpdateManyMutationInput,
+  })
   revalidatePath(`/import/e-fatura/${batchId}`)
   return { success: true, count: result.count }
 }
