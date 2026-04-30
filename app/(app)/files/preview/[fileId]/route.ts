@@ -48,6 +48,11 @@ export async function GET(request: Request, { params }: { params: Promise<{ file
       headers: {
         "Content-Type": contentType,
         "Content-Disposition": `inline; filename*=${encodeFilename(path.basename(previewPath))}`,
+        // Browsers aggressively cache /files/preview/{id}; that hides
+        // server-side regenerations (after a render bug fix or reupload).
+        // Force a revalidation each request — cheap, and the rasterised
+        // pages are already cached on disk.
+        "Cache-Control": "no-cache, must-revalidate",
       },
     })
   } catch (error) {

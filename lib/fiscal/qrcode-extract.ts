@@ -12,7 +12,6 @@ import sharp from "sharp"
 import jsQR from "jsqr"
 import fs from "fs/promises"
 import path from "path"
-import { pathToFileURL } from "url"
 
 const QR_SCAN_DPI = 300
 const QR_SCAN_MAX_PAGES = 2
@@ -48,8 +47,10 @@ async function extractQRCodeFromPdf(pdfPath: string): Promise<QRCodeData | null>
   // by transparent text overlays that breaks jsQR's finder pattern
   // detection.
   const pdfjsRoot = path.dirname(nodeRequire.resolve("pdfjs-dist/package.json"))
-  const standardFontDataUrl = pathToFileURL(path.join(pdfjsRoot, "standard_fonts") + path.sep).toString()
-  const cMapUrl = pathToFileURL(path.join(pdfjsRoot, "cmaps") + path.sep).toString()
+  // Plain absolute path + trailing slash — pdfjs's NodeStandardFontDataFactory
+  // calls fs.readFile(base + filename) directly and rejects file:// URLs as strings.
+  const standardFontDataUrl = path.join(pdfjsRoot, "standard_fonts") + path.sep
+  const cMapUrl = path.join(pdfjsRoot, "cmaps") + path.sep
   const { createCanvas } = await import("@napi-rs/canvas")
 
   // pdfjs v4 wants a *class* it can `new`, not an object literal.
@@ -139,21 +140,53 @@ async function decodeQRFromImage(imagePath: string): Promise<QRCodeData | null> 
 }
 
 async function decodeQRFromBuffer(input: Buffer): Promise<QRCodeData | null> {
-  try {
-    const { data, info } = await sharp(input)
-      .greyscale()
-      .normalise()
-      .ensureAlpha()
-      .raw()
-      .toBuffer({ resolveWithObject: true })
-
-    const result = jsQR(new Uint8ClampedArray(data.buffer), info.width, info.height)
-
-    if (result && isPortugueseQRCode(result.data)) {
-      return parseQRCodeString(result.data)
+  // jsQR is fairly picky about contrast and finder-pattern clarity.
+  // Many PT invoices print the e-Fatura QR as small, low-contrast vector
+  // squares that decode at one resolution but not another. Try a couple
+  // of variants — full size, 2× upscale, threshold — before giving up.
+  const tryDecode = async (pipeline: sharp.Sharp): Promise<QRCodeData | null> => {
+    try {
+      const { data, info } = await pipeline.ensureAlpha().raw().toBuffer({ resolveWithObject: true })
+      const result = jsQR(new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength), info.width, info.height)
+      if (result && isPortugueseQRCode(result.data)) {
+        return parseQRCodeString(result.data)
+      }
+    } catch {
+      // fall through to next strategy
     }
-
     return null
+  }
+
+  try {
+    const meta = await sharp(input).metadata()
+    const width = meta.width || 0
+
+    // Strategy 1: greyscale + normalise (fast path, works for clean scans)
+    const r1 = await tryDecode(sharp(input).greyscale().normalise())
+    if (r1) return r1
+
+    // Strategy 2: 2× upscale — helps when the QR is small relative to the page
+    const r2 = await tryDecode(
+      sharp(input)
+        .resize({ width: width > 0 ? width * 2 : undefined, kernel: "lanczos3" })
+        .greyscale()
+        .normalise()
+    )
+    if (r2) return r2
+
+    // Strategy 3: hard threshold — kills anti-aliasing that confuses jsQR
+    const r3 = await tryDecode(sharp(input).greyscale().normalise().threshold(160))
+    if (r3) return r3
+
+    // Strategy 4: threshold @ 2× — last-resort combo
+    const r4 = await tryDecode(
+      sharp(input)
+        .resize({ width: width > 0 ? width * 2 : undefined, kernel: "lanczos3" })
+        .greyscale()
+        .normalise()
+        .threshold(160)
+    )
+    return r4
   } catch {
     return null
   }
