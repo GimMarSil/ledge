@@ -13,7 +13,9 @@ const nextConfig: NextConfig = {
   // binary into the server actions chunk and the build fails with
   // "Module parse failed: Unexpected character '\\0'". They run on the
   // node side via require() at runtime instead.
-  serverExternalPackages: ["@napi-rs/canvas", "pdfjs-dist"],
+  // zxing-wasm ships a .wasm binary it loads via Emscripten's locateFile;
+  // bundling it through webpack mangles the binary lookup, so externalize.
+  serverExternalPackages: ["@napi-rs/canvas", "pdfjs-dist", "zxing-wasm"],
   experimental: {
     serverActions: {
       bodySizeLimit: "32mb",

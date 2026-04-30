@@ -3,7 +3,12 @@
 /**
  * Extração de QR codes de faturas portuguesas a partir de PDFs e imagens.
  * Usa pdfjs-dist + @napi-rs/canvas (pure JS / prebuilt native, sem deps de
- * SO) para rasterizar páginas e jsQR + sharp para decodificar.
+ * SO) para rasterizar páginas e zxing-wasm + jsQR (fallback) para decodificar.
+ *
+ * Tried jsQR-only first; it consistently failed on PT invoices where the
+ * QR is rendered as small vector squares (typical e-Fatura output from
+ * SAFT-PT certified billing software). zxing-cpp via WASM is much more
+ * tolerant of small/low-contrast/anti-aliased codes.
  */
 
 import { QRCodeData } from "./qrcode"
@@ -143,55 +148,138 @@ async function decodeQRFromImage(imagePath: string): Promise<QRCodeData | null> 
   return decodeQRFromBuffer(await fs.readFile(imagePath))
 }
 
-async function decodeQRFromBuffer(input: Buffer): Promise<QRCodeData | null> {
-  // jsQR is fairly picky about contrast and finder-pattern clarity.
-  // Many PT invoices print the e-Fatura QR as small, low-contrast vector
-  // squares that decode at one resolution but not another. Try a couple
-  // of variants — full size, 2× upscale, threshold — before giving up.
-  const tryDecode = async (pipeline: sharp.Sharp): Promise<QRCodeData | null> => {
-    try {
-      const { data, info } = await pipeline.ensureAlpha().raw().toBuffer({ resolveWithObject: true })
-      const result = jsQR(new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength), info.width, info.height)
-      if (result && isPortugueseQRCode(result.data)) {
-        return parseQRCodeString(result.data)
-      }
-    } catch {
-      // fall through to next strategy
+// Lazy-load zxing-wasm module once and reuse. The wasm binary ships in
+// node_modules; in node the loader needs locateFile() to point at the
+// real file path (default behaviour fetches from a CDN URL that won't
+// resolve in our container).
+let zxingModulePromise: Promise<unknown> | null = null
+async function getZXingReader() {
+  const reader = await import("zxing-wasm/reader")
+  if (!zxingModulePromise) {
+    // eslint-disable-next-line @typescript-eslint/no-require-imports
+    const nodeRequire: NodeJS.Require = eval("require")
+    const wasmPath = nodeRequire.resolve("zxing-wasm/reader/zxing_reader.wasm")
+    zxingModulePromise = reader.prepareZXingModule({
+      overrides: { locateFile: () => wasmPath },
+      fireImmediately: true,
+    }) as Promise<unknown>
+  }
+  await zxingModulePromise
+  return reader
+}
+
+async function decodeWithZXing(rawPng: Buffer): Promise<string | null> {
+  try {
+    const reader = await getZXingReader()
+    const u8 = new Uint8Array(rawPng.buffer, rawPng.byteOffset, rawPng.byteLength)
+    const results = await reader.readBarcodes(u8, {
+      tryHarder: true,
+      tryRotate: true,
+      tryInvert: true,
+      formats: ["QRCode"],
+      maxNumberOfSymbols: 1,
+    })
+    return results[0]?.text || null
+  } catch (err) {
+    console.warn("[qrcode] zxing-wasm decode threw:", err instanceof Error ? err.message : err)
+    return null
+  }
+}
+
+async function decodeWithJsQR(input: Buffer, label: string): Promise<string | null> {
+  try {
+    const { data, info } = await sharp(input)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true })
+    const result = jsQR(
+      new Uint8ClampedArray(data.buffer, data.byteOffset, data.byteLength),
+      info.width,
+      info.height
+    )
+    if (result?.data) {
+      console.info(`[qrcode] jsQR (${label}) decoded ${result.data.length} chars`)
+      return result.data
     }
     return null
-  }
-
-  try {
-    const meta = await sharp(input).metadata()
-    const width = meta.width || 0
-
-    // Strategy 1: greyscale + normalise (fast path, works for clean scans)
-    const r1 = await tryDecode(sharp(input).greyscale().normalise())
-    if (r1) return r1
-
-    // Strategy 2: 2× upscale — helps when the QR is small relative to the page
-    const r2 = await tryDecode(
-      sharp(input)
-        .resize({ width: width > 0 ? width * 2 : undefined, kernel: "lanczos3" })
-        .greyscale()
-        .normalise()
-    )
-    if (r2) return r2
-
-    // Strategy 3: hard threshold — kills anti-aliasing that confuses jsQR
-    const r3 = await tryDecode(sharp(input).greyscale().normalise().threshold(160))
-    if (r3) return r3
-
-    // Strategy 4: threshold @ 2× — last-resort combo
-    const r4 = await tryDecode(
-      sharp(input)
-        .resize({ width: width > 0 ? width * 2 : undefined, kernel: "lanczos3" })
-        .greyscale()
-        .normalise()
-        .threshold(160)
-    )
-    return r4
-  } catch {
+  } catch (err) {
+    console.warn(`[qrcode] jsQR (${label}) threw:`, err instanceof Error ? err.message : err)
     return null
   }
+}
+
+async function decodeQRFromBuffer(input: Buffer): Promise<QRCodeData | null> {
+  // Strategy ladder, cheapest → most aggressive. zxing is the workhorse
+  // (handles small / anti-aliased / rotated codes fine); jsQR variants
+  // are the fallback. Each strategy returns the raw decoded string and
+  // we validate e-Fatura format at the end so we can log non-PT QRs.
+  const meta = await sharp(input).metadata().catch(() => ({ width: 0 } as { width: number }))
+  const width = meta.width || 0
+
+  type Stage = { name: string; run: () => Promise<string | null> }
+  const stages: Stage[] = [
+    { name: "zxing/raw", run: () => decodeWithZXing(input) },
+    {
+      name: "zxing/grey-norm",
+      run: async () => {
+        const buf = await sharp(input).greyscale().normalise().png().toBuffer()
+        return decodeWithZXing(buf)
+      },
+    },
+    {
+      name: "zxing/2x-grey-norm",
+      run: async () => {
+        const buf = await sharp(input)
+          .resize({ width: width > 0 ? width * 2 : undefined, kernel: "lanczos3" })
+          .greyscale()
+          .normalise()
+          .png()
+          .toBuffer()
+        return decodeWithZXing(buf)
+      },
+    },
+    {
+      name: "zxing/threshold",
+      run: async () => {
+        const buf = await sharp(input).greyscale().normalise().threshold(160).png().toBuffer()
+        return decodeWithZXing(buf)
+      },
+    },
+    {
+      name: "jsqr/grey-norm",
+      run: async () => {
+        const buf = await sharp(input).greyscale().normalise().toBuffer()
+        return decodeWithJsQR(buf, "grey-norm")
+      },
+    },
+    {
+      name: "jsqr/2x-threshold",
+      run: async () => {
+        const buf = await sharp(input)
+          .resize({ width: width > 0 ? width * 2 : undefined, kernel: "lanczos3" })
+          .greyscale()
+          .normalise()
+          .threshold(160)
+          .toBuffer()
+        return decodeWithJsQR(buf, "2x-threshold")
+      },
+    },
+  ]
+
+  for (const stage of stages) {
+    const decoded = await stage.run()
+    if (!decoded) continue
+    if (isPortugueseQRCode(decoded)) {
+      console.info(`[qrcode] decoded e-Fatura QR via ${stage.name}`)
+      return parseQRCodeString(decoded)
+    }
+    console.info(
+      `[qrcode] ${stage.name} decoded a QR but it isn't e-Fatura format (first 80 chars: ${JSON.stringify(decoded.slice(0, 80))})`
+    )
+    // Don't keep trying — a QR was decoded, just isn't ours.
+    return null
+  }
+
+  console.info("[qrcode] no QR detected after all strategies")
+  return null
 }
