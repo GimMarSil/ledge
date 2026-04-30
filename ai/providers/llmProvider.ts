@@ -120,11 +120,19 @@ async function requestLLMUnified(config: LLMConfig, req: LLMRequest): Promise<LL
 }
 
 export async function requestLLM(settings: LLMSettings, req: LLMRequest): Promise<LLMResponse> {
+  // Track per-provider failures so the caller (and the UI) gets the
+  // actual reason instead of a useless "All LLM providers failed". The
+  // generic message hides config drift, expired keys, rate limits, image
+  // upload errors, etc. — surface them.
+  const failures: string[] = []
+  let attempted = 0
   for (const config of settings.providers) {
     if (!config.apiKey || !config.model) {
-      console.info("Skipping provider:", config.provider)
+      console.info("Skipping provider:", config.provider, "— missing apiKey or model")
+      failures.push(`${config.provider}: not configured (missing ${!config.apiKey ? "apiKey" : "model"})`)
       continue
     }
+    attempted++
     console.info("Use provider:", config.provider)
 
     const response = await requestLLMUnified(config, req)
@@ -132,13 +140,16 @@ export async function requestLLM(settings: LLMSettings, req: LLMRequest): Promis
     if (!response.error) {
       return response
     } else {
-      console.error(response.error)
+      console.error(`Provider ${config.provider} failed:`, response.error)
+      failures.push(`${config.provider}: ${response.error}`)
     }
   }
 
   return {
     output: {},
     provider: settings.providers[0]?.provider || "openai",
-    error: "All LLM providers failed or are not configured",
+    error: attempted === 0
+      ? `Nenhum provider de IA configurado. Detalhes: ${failures.join(" | ") || "lista vazia"}`
+      : `IA falhou — ${failures.join(" | ")}`,
   }
 }

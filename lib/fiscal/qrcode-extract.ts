@@ -11,6 +11,8 @@ import { isPortugueseQRCode, parseQRCodeString } from "./qrcode-reader"
 import sharp from "sharp"
 import jsQR from "jsqr"
 import fs from "fs/promises"
+import path from "path"
+import { pathToFileURL } from "url"
 
 const QR_SCAN_DPI = 300
 const QR_SCAN_MAX_PAGES = 2
@@ -40,6 +42,14 @@ async function extractQRCodeFromPdf(pdfPath: string): Promise<QRCodeData | null>
   // eslint-disable-next-line @typescript-eslint/no-require-imports
   const nodeRequire: NodeJS.Require = eval("require")
   pdfjs.GlobalWorkerOptions.workerSrc = nodeRequire.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs")
+  // Same standard-fonts / cmaps wiring as lib/previews/pdf.ts. Without
+  // these, PDFs that reference standard fonts render with no text and
+  // (more importantly here) the QR code can come out partially clipped
+  // by transparent text overlays that breaks jsQR's finder pattern
+  // detection.
+  const pdfjsRoot = path.dirname(nodeRequire.resolve("pdfjs-dist/package.json"))
+  const standardFontDataUrl = pathToFileURL(path.join(pdfjsRoot, "standard_fonts") + path.sep).toString()
+  const cMapUrl = pathToFileURL(path.join(pdfjsRoot, "cmaps") + path.sep).toString()
   const { createCanvas } = await import("@napi-rs/canvas")
 
   // pdfjs v4 wants a *class* it can `new`, not an object literal.
@@ -66,6 +76,9 @@ async function extractQRCodeFromPdf(pdfPath: string): Promise<QRCodeData | null>
     disableFontFace: true,
     useSystemFonts: false,
     isEvalSupported: false,
+    standardFontDataUrl,
+    cMapUrl,
+    cMapPacked: true,
     CanvasFactory: NodeCanvasFactory as unknown as never,
   } as unknown as never)
   const doc = await loadingTask.promise

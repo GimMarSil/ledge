@@ -4,6 +4,7 @@ import { fileExists, getUserPreviewsDirectory, safePathJoin } from "@/lib/files"
 import { User } from "@/prisma/client"
 import fs from "fs/promises"
 import path from "path"
+import { pathToFileURL } from "url"
 import sharp from "sharp"
 import config from "../config"
 
@@ -30,7 +31,7 @@ export async function pdfToImages(
   // Cache hit
   const existingPages: string[] = []
   for (let i = 1; i <= config.upload.pdfs.maxPages; i++) {
-    const convertedFilePath = safePathJoin(userPreviewsDirectory, `${basename}.${i}.webp`)
+    const convertedFilePath = safePathJoin(userPreviewsDirectory, `${basename}.${i}.v2.webp`)
     if (await fileExists(convertedFilePath)) {
       existingPages.push(convertedFilePath)
     } else {
@@ -52,7 +53,7 @@ export async function pdfToImages(
 
   const written: string[] = []
   for (let i = 0; i < pages.length; i++) {
-    const out = safePathJoin(userPreviewsDirectory, `${basename}.${i + 1}.webp`)
+    const out = safePathJoin(userPreviewsDirectory, `${basename}.${i + 1}.v2.webp`)
     await fs.writeFile(out, pages[i])
     written.push(out)
   }
@@ -81,6 +82,17 @@ async function rasterisePdf(data: Buffer, opts: RasteriseOpts): Promise<Buffer[]
   const nodeRequire: NodeJS.Require = eval("require")
   pdfjs.GlobalWorkerOptions.workerSrc = nodeRequire.resolve("pdfjs-dist/legacy/build/pdf.worker.mjs")
 
+  // Locate the standard fonts and cmaps shipped with pdfjs-dist. PDFs
+  // that reference standard fonts (Helvetica, Times, Courier, …) without
+  // embedding them — which most PT invoices do — render with NO text at
+  // all unless we point pdfjs at these. Symptom: preview images show
+  // logos and shapes but blank table cells, and the LLM has nothing to
+  // read. Resolve from the package root so it works in dev and in the
+  // Docker image.
+  const pdfjsRoot = path.dirname(nodeRequire.resolve("pdfjs-dist/package.json"))
+  const standardFontDataUrl = pathToFileURL(path.join(pdfjsRoot, "standard_fonts") + path.sep).toString()
+  const cMapUrl = pathToFileURL(path.join(pdfjsRoot, "cmaps") + path.sep).toString()
+
   const { createCanvas } = await import("@napi-rs/canvas")
 
   // pdfjs v4 wants a *class* it can `new`, not an object literal.
@@ -107,6 +119,9 @@ async function rasterisePdf(data: Buffer, opts: RasteriseOpts): Promise<Buffer[]
     disableFontFace: true,
     useSystemFonts: false,
     isEvalSupported: false,
+    standardFontDataUrl,
+    cMapUrl,
+    cMapPacked: true,
     CanvasFactory: NodeCanvasFactory as unknown as never,
   } as unknown as never)
   const doc = await loadingTask.promise
