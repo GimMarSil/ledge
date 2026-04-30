@@ -2,7 +2,9 @@
 
 import { fileExists, getUserPreviewsDirectory, safePathJoin } from "@/lib/files"
 import { User } from "@/prisma/client"
+import { spawn } from "child_process"
 import fs from "fs/promises"
+import os from "os"
 import path from "path"
 import sharp from "sharp"
 import config from "../config"
@@ -30,7 +32,7 @@ export async function pdfToImages(
   // Cache hit
   const existingPages: string[] = []
   for (let i = 1; i <= config.upload.pdfs.maxPages; i++) {
-    const convertedFilePath = safePathJoin(userPreviewsDirectory, `${basename}.${i}.v5.webp`)
+    const convertedFilePath = safePathJoin(userPreviewsDirectory, `${basename}.${i}.v6.webp`)
     if (await fileExists(convertedFilePath)) {
       existingPages.push(convertedFilePath)
     } else {
@@ -41,18 +43,33 @@ export async function pdfToImages(
     return { contentType: "image/webp", pages: existingPages }
   }
 
-  const data = await fs.readFile(origFilePath)
-  const pages = await rasterisePdf(data, {
+  const opts: RasteriseOpts = {
     maxPages: config.upload.pdfs.maxPages,
     dpi: config.upload.pdfs.dpi,
     maxWidth: config.upload.pdfs.maxWidth,
     maxHeight: config.upload.pdfs.maxHeight,
     quality: config.upload.pdfs.quality,
-  })
+  }
+
+  // Try poppler (pdftoppm) first — handles font substitution natively
+  // via Cairo + Fontconfig and renders PHC-style invoices correctly
+  // where pdfjs falls back to blank cells. Only available in Linux
+  // production; Windows dev falls back to pdfjs.
+  let pages: Buffer[]
+  try {
+    pages = await rasterisePdfWithPoppler(origFilePath, opts)
+  } catch (err) {
+    console.warn(
+      "[pdf] poppler rasterise failed, falling back to pdfjs:",
+      err instanceof Error ? err.message : err
+    )
+    const data = await fs.readFile(origFilePath)
+    pages = await rasterisePdf(data, opts)
+  }
 
   const written: string[] = []
   for (let i = 0; i < pages.length; i++) {
-    const out = safePathJoin(userPreviewsDirectory, `${basename}.${i + 1}.v5.webp`)
+    const out = safePathJoin(userPreviewsDirectory, `${basename}.${i + 1}.v6.webp`)
     await fs.writeFile(out, pages[i])
     written.push(out)
   }
@@ -65,6 +82,75 @@ type RasteriseOpts = {
   maxWidth: number
   maxHeight: number
   quality: number
+}
+
+/**
+ * Rasterise a PDF via poppler-utils (pdftoppm). Drops PNGs into a
+ * temp directory and re-encodes them to webp. The big win over pdfjs
+ * is that poppler uses Cairo + Fontconfig: PDFs that reference but
+ * don't embed body fonts (PHC-generated invoices etc.) get correct
+ * substitution from the system fonts installed in the Dockerfile.
+ *
+ * Throws if pdftoppm is missing (Windows dev) — caller falls back to
+ * pdfjs.
+ */
+async function rasterisePdfWithPoppler(pdfPath: string, opts: RasteriseOpts): Promise<Buffer[]> {
+  const workDir = await fs.mkdtemp(path.join(os.tmpdir(), "pdftoppm-"))
+  try {
+    const outPrefix = path.join(workDir, "p")
+    const args = [
+      "-png",
+      "-r",
+      String(opts.dpi),
+      "-l",
+      String(opts.maxPages),
+      pdfPath,
+      outPrefix,
+    ]
+
+    await new Promise<void>((resolve, reject) => {
+      const child = spawn("pdftoppm", args, { stdio: ["ignore", "ignore", "pipe"] })
+      let stderr = ""
+      child.stderr.on("data", (chunk) => {
+        stderr += chunk.toString()
+      })
+      child.on("error", reject)
+      child.on("close", (code) => {
+        if (code === 0) resolve()
+        else reject(new Error(`pdftoppm exited with code ${code}: ${stderr.trim()}`))
+      })
+    })
+
+    // pdftoppm names files p-1.png, p-2.png, ... (with zero-padding
+    // depending on total page count). Read directory and sort.
+    const entries = (await fs.readdir(workDir))
+      .filter((f) => f.endsWith(".png"))
+      .sort((a, b) => {
+        const an = parseInt(a.match(/(\d+)\.png$/)?.[1] || "0", 10)
+        const bn = parseInt(b.match(/(\d+)\.png$/)?.[1] || "0", 10)
+        return an - bn
+      })
+
+    const out: Buffer[] = []
+    for (const entry of entries) {
+      const pngPath = path.join(workDir, entry)
+      // Clamp to maxWidth/maxHeight in sharp so a huge invoice at 150
+      // DPI doesn't blow out memory or storage.
+      const webp = await sharp(pngPath)
+        .resize({
+          width: opts.maxWidth,
+          height: opts.maxHeight,
+          fit: "inside",
+          withoutEnlargement: true,
+        })
+        .webp({ quality: opts.quality })
+        .toBuffer()
+      out.push(webp)
+    }
+    return out
+  } finally {
+    await fs.rm(workDir, { recursive: true, force: true }).catch(() => {})
+  }
 }
 
 async function rasterisePdf(data: Buffer, opts: RasteriseOpts): Promise<Buffer[]> {

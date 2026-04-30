@@ -47,6 +47,7 @@ RUN apt-get update && apt-get install -y \
     fonts-liberation \
     fonts-dejavu-core \
     fonts-dejavu-extra \
+    poppler-utils \
     && fc-cache -f \
     && rm -rf /var/lib/apt/lists/*
 
