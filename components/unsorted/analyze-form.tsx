@@ -1,7 +1,7 @@
 "use client"
 
 import { useNotification } from "@/app/(app)/context"
-import { analyzeFileAction, deleteUnsortedFileAction, extractQRCodeAction, saveFileAsTransactionAction } from "@/app/(app)/unsorted/actions"
+import { analyzeFileAction, deleteUnsortedFileAction, saveFileAsTransactionAction } from "@/app/(app)/unsorted/actions"
 import { CurrencyConverterTool } from "@/components/agents/currency-converter"
 import ToolWindow from "@/components/agents/tool-window"
 import { EditableItemsTable, type EditableItem } from "@/components/unsorted/editable-items-table"
@@ -16,7 +16,7 @@ import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Category, Currency, Field, File, Project, TreasuryAccount } from "@/prisma/client"
 import { format } from "date-fns"
-import { ArrowDownToLine, Brain, Loader2, QrCode, Trash2 } from "lucide-react"
+import { ArrowDownToLine, Brain, Loader2, Trash2 } from "lucide-react"
 import { startTransition, useActionState, useMemo, useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -155,36 +155,6 @@ export default function AnalyzeForm({
     })
   }
 
-  const startQRExtract = async () => {
-    setIsAnalyzing(true)
-    setAnalyzeError("")
-    try {
-      setAnalyzeStep("A ler QR code...")
-      const result = await extractQRCodeAction(file)
-      if (!result.success) {
-        setAnalyzeError(result.error ?? "QR code não encontrado")
-        return
-      }
-      // QR fields use the cents convention everywhere downstream, but
-      // the analyze form expects euros (string-coerced). Match the
-      // shape the form already uses.
-      const qr = result.data!.fields
-      const merged: Record<string, unknown> = {}
-      for (const [k, v] of Object.entries(qr)) {
-        if (v === undefined || v === null) continue
-        merged[k] = v
-      }
-      setFormData((prev) => ({ ...prev, ...merged }))
-      router.refresh()
-      showNotification({ code: "global.banner", message: "Pré-classificado por QR", type: "success" })
-    } catch (error) {
-      setAnalyzeError(error instanceof Error ? error.message : "Falha ao ler QR")
-    } finally {
-      setIsAnalyzing(false)
-      setAnalyzeStep("")
-    }
-  }
-
   const startAnalyze = async () => {
     setIsAnalyzing(true)
     setAnalyzeError("")
@@ -222,8 +192,8 @@ export default function AnalyzeForm({
           <Badge variant="outline">Este ficheiro foi dividido</Badge>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 mb-6">
-          <Button className="py-6 text-lg" onClick={startAnalyze} disabled={isAnalyzing} data-analyze-button>
+        <div className="mb-6">
+          <Button className="w-full py-6 text-lg" onClick={startAnalyze} disabled={isAnalyzing} data-analyze-button>
             {isAnalyzing ? (
               <>
                 <Loader2 className="mr-1 h-4 w-4 animate-spin" />
@@ -235,18 +205,6 @@ export default function AnalyzeForm({
                 <span>Analisar com IA</span>
               </>
             )}
-          </Button>
-          <Button
-            type="button"
-            variant="outline"
-            className="py-6"
-            onClick={startQRExtract}
-            disabled={isAnalyzing}
-            title="Lê o QR code AT-Fatura. Sem custo de IA, mas só funciona se o documento tiver o QR."
-          >
-            <QrCode className="mr-1 h-4 w-4" />
-            <span className="hidden md:inline">Ler QR (grátis)</span>
-            <span className="md:hidden">QR</span>
           </Button>
         </div>
       )}

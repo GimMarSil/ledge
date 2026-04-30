@@ -9,7 +9,10 @@ import {
   safePathJoin,
   unsortedFilePath,
 } from "@/lib/files"
-import { createFile } from "@/models/files"
+import { extractQRCodeFromFile } from "@/lib/fiscal/qrcode-extract"
+import { generateQRCodeString } from "@/lib/fiscal/qrcode"
+import { qrCodeDataToTransactionFields } from "@/lib/fiscal/qrcode-to-transaction"
+import { createFile, updateFile } from "@/models/files"
 import { updateUser } from "@/models/users"
 import { randomUUID } from "crypto"
 import { mkdir, writeFile } from "fs/promises"
@@ -65,6 +68,24 @@ export async function uploadFilesAction(formData: FormData): Promise<ActionState
           lastModified: file.lastModified,
         },
       })
+
+      // Best-effort silent QR pre-classification. Runs in the upload
+      // server action so by the time /unsorted re-renders, fields are
+      // already populated for the user — no separate button or wait.
+      // Failure is silent: most uploaded docs don't carry an e-Fatura
+      // QR and we don't want to surface that as an error.
+      try {
+        const qrData = await extractQRCodeFromFile(fullFilePath, file.type)
+        if (qrData) {
+          const qrRaw = generateQRCodeString(qrData)
+          const qrFields = qrCodeDataToTransactionFields(qrData, qrRaw)
+          await updateFile(fileRecord.id, user.id, {
+            cachedParseResult: qrFields as Record<string, unknown>,
+          })
+        }
+      } catch (err) {
+        console.warn("[upload] QR pre-classification failed:", err instanceof Error ? err.message : err)
+      }
 
       return fileRecord
     })
