@@ -54,11 +54,24 @@ export function FilePreview({ file }: { file: File }) {
             don't blow out the layout. */}
         <div className={`overflow-auto ${isPdf ? "h-[min(85vh,900px)] min-h-[500px]" : "aspect-[3/4]"}`}>
           {isPdf ? (
+            // Default view: PDF.js viewer's #view=FitH fits the page
+            // *width* to the iframe's viewport, so the user lands on a
+            // readable document with no horizontal scroll. Zoom buttons
+            // then apply a CSS transform on top.
             <iframe
-              src={`/files/preview/${file.id}#zoom=${Math.round(zoom * 100)}`}
+              src={`/files/preview/${file.id}#view=FitH`}
               title={file.filename}
-              className="w-full h-full border-0 rounded"
-              style={{ transform: `scale(${zoom})`, transformOrigin: "top left", width: `${100 / zoom}%`, height: `${100 / zoom}%` }}
+              className="border-0 rounded"
+              style={
+                zoom === 1
+                  ? { width: "100%", height: "100%" }
+                  : {
+                      transform: `scale(${zoom})`,
+                      transformOrigin: "top left",
+                      width: `${100 / zoom}%`,
+                      height: `${100 / zoom}%`,
+                    }
+              }
             />
           ) : (
             <>
@@ -71,9 +84,16 @@ export function FilePreview({ file }: { file: File }) {
                 className={`${
                   isEnlarged
                     ? "fixed inset-0 z-50 m-auto w-screen h-screen object-contain cursor-zoom-out bg-black/80"
-                    : "w-full h-full object-contain cursor-zoom-in"
+                    : "w-full max-w-full h-auto object-contain cursor-zoom-in"
                 }`}
-                style={!isEnlarged ? { transform: `scale(${zoom})`, transformOrigin: "top left" } : undefined}
+                // Default (zoom=1): natural fit — image expands to fill
+                // the column width, height auto, no horizontal scroll.
+                // Only apply the transform once the user zooms in.
+                style={
+                  !isEnlarged && zoom !== 1
+                    ? { transform: `scale(${zoom})`, transformOrigin: "top left", width: `${100 / zoom}%` }
+                    : undefined
+                }
                 onClick={() => setIsEnlarged(!isEnlarged)}
               />
               {imgError && (

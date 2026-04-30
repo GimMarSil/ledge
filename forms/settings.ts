@@ -7,6 +7,7 @@ export const settingsFormSchema = z.object({
   default_category: z.string().optional(),
   default_project: z.string().optional(),
   default_vat_region: z.enum(["mainland", "madeira", "azores"]).optional(),
+  trash_retention_days: z.string().optional(),
   openai_api_key: z.string().optional(),
   openai_model_name: z.string().default('gpt-4o-mini'),
   google_api_key: z.string().optional(),

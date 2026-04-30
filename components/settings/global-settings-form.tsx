@@ -40,6 +40,21 @@ export default function GlobalSettingsForm({
       />
 
       <label className="flex flex-col gap-1">
+        <span className="text-sm font-medium">Retenção do caixote do lixo (dias)</span>
+        <input
+          type="number"
+          name="trash_retention_days"
+          min={1}
+          max={3650}
+          defaultValue={settings.trash_retention_days || "90"}
+          className="px-3 py-2 rounded-md border bg-background w-32"
+        />
+        <span className="text-xs text-muted-foreground">
+          Transações apagadas ficam no caixote do lixo durante este período antes de serem apagadas definitivamente. Default 90 dias.
+        </span>
+      </label>
+
+      <label className="flex flex-col gap-1">
         <span className="text-sm font-medium">Região fiscal (taxas de IVA)</span>
         <select
           name="default_vat_region"

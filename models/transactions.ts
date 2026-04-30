@@ -65,7 +65,9 @@ export const getTransactions = cache(
     transactions: Transaction[]
     total: number
   }> => {
-    const where: Prisma.TransactionWhereInput = { userId }
+    // Trash items are excluded from every primary read. Use the
+    // dedicated trash helpers below to look them up.
+    const where: Prisma.TransactionWhereInput = { userId, deletedAt: null }
     let orderBy: Prisma.TransactionOrderByWithRelationInput = { issuedAt: "desc" }
 
     if (filters) {
@@ -133,8 +135,8 @@ export const getTransactions = cache(
 )
 
 export const getTransactionById = cache(async (id: string, userId: string): Promise<Transaction | null> => {
-  return await prisma.transaction.findUnique({
-    where: { id, userId },
+  return await prisma.transaction.findFirst({
+    where: { id, userId, deletedAt: null },
     include: {
       category: true,
       project: true,
@@ -183,28 +185,76 @@ export const updateTransactionFiles = async (id: string, userId: string, files: 
   })
 }
 
+// "Delete" sends to the trash (soft-delete). Files attached to the
+// transaction are NOT touched here — they're only reaped when the
+// trash entry is purged for real (hardDeleteTransaction).
 export const deleteTransaction = async (id: string, userId: string): Promise<Transaction | undefined> => {
   const transaction = await getTransactionById(id, userId)
-
-  if (transaction) {
-    const files = Array.isArray(transaction.files) ? transaction.files : []
-
-    for (const fileId of files as string[]) {
-      if ((await getTransactionsByFileId(fileId, userId)).length <= 1) {
-        await deleteFile(fileId, userId)
-      }
-    }
-
-    return await prisma.transaction.delete({
-      where: { id, userId },
-    })
-  }
+  if (!transaction) return undefined
+  return prisma.transaction.update({
+    where: { id, userId },
+    data: { deletedAt: new Date() },
+  })
 }
 
 export const bulkDeleteTransactions = async (ids: string[], userId: string) => {
-  return await prisma.transaction.deleteMany({
-    where: { id: { in: ids }, userId },
+  return prisma.transaction.updateMany({
+    where: { id: { in: ids }, userId, deletedAt: null },
+    data: { deletedAt: new Date() },
   })
+}
+
+// ── Trash / soft-delete helpers ──────────────────────────────────────────
+
+export const getDeletedTransactions = cache(async (userId: string): Promise<Transaction[]> => {
+  return prisma.transaction.findMany({
+    where: { userId, deletedAt: { not: null } },
+    include: { category: true, project: true },
+    orderBy: { deletedAt: "desc" },
+  })
+})
+
+export const restoreTransaction = async (id: string, userId: string) => {
+  return prisma.transaction.update({
+    where: { id, userId },
+    data: { deletedAt: null },
+  })
+}
+
+export const hardDeleteTransaction = async (id: string, userId: string): Promise<Transaction | undefined> => {
+  const transaction = await prisma.transaction.findFirst({ where: { id, userId } })
+  if (!transaction) return undefined
+
+  const files = Array.isArray(transaction.files) ? transaction.files : []
+  for (const fileId of files as string[]) {
+    const stillReferenced = await prisma.transaction.count({
+      where: { files: { array_contains: [fileId] }, userId, NOT: { id } },
+    })
+    if (stillReferenced === 0) {
+      await deleteFile(fileId, userId)
+    }
+  }
+  return prisma.transaction.delete({ where: { id, userId } })
+}
+
+/**
+ * Lazy purge — called on every visit to /trash. Hard-deletes any
+ * transaction whose deletedAt is older than the user's configured
+ * retention window (default 90 days). We don't run a cron because
+ * Despesas is provisioned tenant-by-tenant; doing it on access is
+ * predictable and costs nothing on a healthy install.
+ */
+export const purgeExpiredTrash = async (userId: string, retentionDays: number) => {
+  if (retentionDays <= 0) return { purged: 0 }
+  const threshold = new Date(Date.now() - retentionDays * 24 * 60 * 60 * 1000)
+  const expired = await prisma.transaction.findMany({
+    where: { userId, deletedAt: { lt: threshold } },
+    select: { id: true },
+  })
+  for (const { id } of expired) {
+    await hardDeleteTransaction(id, userId)
+  }
+  return { purged: expired.length }
 }
 
 // Columns that are first-class on the Transaction model. They must reach

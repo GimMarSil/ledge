@@ -223,6 +223,8 @@ export function BatchEditor({
               <TableHead>Categoria</TableHead>
               <TableHead>Projeto</TableHead>
               <TableHead>Conta</TableHead>
+              <TableHead className="text-right">Base</TableHead>
+              <TableHead className="text-right">IVA</TableHead>
               <TableHead className="text-right">Total</TableHead>
             </TableRow>
           </TableHeader>
@@ -252,6 +254,15 @@ export function BatchEditor({
                 <TableCell className="text-xs">{tx.categoryCode ?? "—"}</TableCell>
                 <TableCell className="text-xs">{tx.projectCode ?? "—"}</TableCell>
                 <TableCell className="text-xs">{tx.treasuryAccountCode ?? "—"}</TableCell>
+                <TableCell className="text-right tabular-nums text-xs">
+                  {tx.subtotal != null ? formatCurrency(tx.subtotal, tx.currencyCode || "EUR") : "—"}
+                </TableCell>
+                <TableCell className="text-right tabular-nums text-xs">
+                  {tx.vatAmount != null ? formatCurrency(tx.vatAmount, tx.currencyCode || "EUR") : "—"}
+                  {tx.vatRate != null && (
+                    <span className="block text-[10px] text-muted-foreground">{Number(tx.vatRate)}%</span>
+                  )}
+                </TableCell>
                 <TableCell className="text-right tabular-nums">
                   {formatCurrency(tx.total ?? 0, tx.currencyCode || "EUR")}
                 </TableCell>

@@ -232,6 +232,10 @@ model Transaction {
   // directly and there is nothing to reimburse).
   reimbursementStatus   String?   @default("pending") @map("reimbursement_status")
   reimbursementPaidAt   DateTime? @map("reimbursement_paid_at")
+  // Soft-delete: when set, the row is in the trash and excluded from
+  // reads, exports and backups. Hard-deleted by the lazy purge once
+  // the user-configured retention window expires.
+  deletedAt             DateTime? @map("deleted_at")
 
   @@index([userId])
   @@index([projectCode])
@@ -247,6 +251,7 @@ model Transaction {
   @@index([treasuryAccountCode])
   @@index([reimbursementStatus])
   @@index([importBatchId])
+  @@index([deletedAt])
   @@map("transactions")
 }
 

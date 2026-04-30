@@ -25,6 +25,7 @@ export default async function FiscalPage() {
     prisma.transaction.findMany({
       where: {
         userId,
+        deletedAt: null,
         issuedAt: { gte: startDate, lte: endDate },
       },
       include: { category: true },

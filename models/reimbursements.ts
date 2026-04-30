@@ -36,6 +36,7 @@ export async function getReimbursableTransactions(
 ): Promise<ReimbursementSummary> {
   const where: Prisma.TransactionWhereInput = {
     userId,
+    deletedAt: null,
     treasuryAccount: { type: "personal" },
   }
 

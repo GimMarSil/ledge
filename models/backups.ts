@@ -240,7 +240,17 @@ export const MODEL_BACKUP: BackupSetting[] = [
 ]
 
 export async function modelToJSON(userId: string, backupSettings: BackupSetting): Promise<string> {
-  const data = await backupSettings.model.findMany({ where: { userId } })
+  // Soft-deleted rows live in /trash and must NOT bleed into the
+  // backup zip — a restore would otherwise resurrect transactions the
+  // user thought were gone. The transactions table is the only model
+  // with a deletedAt today; other models silently ignore the filter
+  // because findMany accepts unknown where keys for relations the
+  // Prisma client doesn't know about, so we feature-detect by name.
+  const where: Record<string, unknown> = { userId }
+  if (backupSettings.filename === "transactions.json") {
+    where.deletedAt = null
+  }
+  const data = await backupSettings.model.findMany({ where })
 
   if (!data || data.length === 0) {
     return "[]"

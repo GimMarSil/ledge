@@ -54,6 +54,10 @@ export async function importEFaturaAction(
   const existing = await prisma.transaction.findMany({
     where: {
       userId: user.id,
+      // Trash entries don't count for dedupe — if the user trashed an
+      // invoice they imported by mistake, we should let the next
+      // import recreate it cleanly.
+      deletedAt: null,
       OR: rows.map((r) => ({ nif: r.supplierNif, documentNumber: r.documentNumber })),
     },
     select: { nif: true, documentNumber: true },

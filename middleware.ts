@@ -24,6 +24,7 @@ export const config = {
     "/files/:path*",
     "/dashboard/:path*",
     "/reimbursements/:path*",
+    "/trash/:path*",
     // Note: /api/buildflow/* routes are NOT in this matcher.
     // They handle their own auth (API key or SSO token exchange).
   ],

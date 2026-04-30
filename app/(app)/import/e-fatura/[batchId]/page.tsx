@@ -25,7 +25,7 @@ export default async function BatchDetailPage({
 
   const [transactions, categories, projects, treasuryAccounts] = await Promise.all([
     prisma.transaction.findMany({
-      where: { userId: user.id, importBatchId: batchId },
+      where: { userId: user.id, importBatchId: batchId, deletedAt: null },
       orderBy: { issuedAt: "desc" },
       include: { category: true, project: true, treasuryAccount: true },
     }),
