@@ -216,11 +216,16 @@ export async function deleteBatchAction(batchId: string) {
   if (!batch) {
     return { success: false, error: "Lote não encontrado" }
   }
-  await prisma.transaction.deleteMany({
-    where: { userId: user.id, importBatchId: batchId },
+  // Soft-delete the rows so the user can recover them from /trash
+  // within the retention window. Apaga o ImportBatch row too — keeping
+  // it would leave an orphan summary referencing nothing.
+  await prisma.transaction.updateMany({
+    where: { userId: user.id, importBatchId: batchId, deletedAt: null },
+    data: { deletedAt: new Date() },
   })
   await prisma.importBatch.delete({ where: { id: batchId } })
   revalidatePath("/import/e-fatura")
   revalidatePath("/transactions")
+  revalidatePath("/trash")
   return { success: true }
 }

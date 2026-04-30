@@ -61,7 +61,10 @@ function UsageBar({
 
 export function SubscriptionPlan({ user }: { user: User }) {
   const plan = PLANS[user.membershipPlan as keyof typeof PLANS] || PLANS.unlimited
-  const contractsUrl = `${config.buildflow.controlHubUrl}/app/contracts`
+  // Land on the ControlHub home so the existing session/SSO flow can
+  // forward to the right tenant page. /app/contracts on a fresh browser
+  // bounces through /login which currently throws an unhandled error.
+  const contractsUrl = `${config.buildflow.controlHubUrl}/`
 
   const storageUsed = user.storageUsed
   const storageTotal = user.storageLimit
