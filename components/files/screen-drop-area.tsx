@@ -79,6 +79,12 @@ export default function ScreenDropArea({ children }: { children: React.ReactNode
             setTimeout(() => showNotification({ code: "sidebar.unsorted", message: "" }), 3000)
             if (!transactionId) {
               router.push("/unsorted")
+              // Background QR scan kicked off by the server action runs
+              // after the response returns. Refresh a couple of times so
+              // the 'Analisado' pill and pre-filled fields appear without
+              // the user having to manually reload.
+              setTimeout(() => router.refresh(), 3000)
+              setTimeout(() => router.refresh(), 8000)
             }
           } else {
             setUploadError(result.error ? result.error : "Algo correu mal...")

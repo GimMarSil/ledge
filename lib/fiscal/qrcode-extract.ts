@@ -18,7 +18,10 @@ import jsQR from "jsqr"
 import fs from "fs/promises"
 import path from "path"
 
-const QR_SCAN_DPI = 300
+// 150 DPI is plenty for zxing-cpp (the upgrade from jsQR — much more
+// tolerant of low resolution). Cuts pdfjs rasterise time roughly 4x
+// vs the previous 300 DPI, which dominated the QR pipeline cost.
+const QR_SCAN_DPI = 150
 // PT invoices commonly carry the e-Fatura QR on page 2 or 3 (footer of
 // a continuation page, or a "summary" page after itemised lines). Scan
 // up to 10 to match config.upload.pdfs.maxPages — the loop bails out as

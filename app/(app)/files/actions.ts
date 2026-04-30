@@ -69,23 +69,28 @@ export async function uploadFilesAction(formData: FormData): Promise<ActionState
         },
       })
 
-      // Best-effort silent QR pre-classification. Runs in the upload
-      // server action so by the time /unsorted re-renders, fields are
-      // already populated for the user — no separate button or wait.
-      // Failure is silent: most uploaded docs don't carry an e-Fatura
-      // QR and we don't want to surface that as an error.
-      try {
-        const qrData = await extractQRCodeFromFile(fullFilePath, file.type)
-        if (qrData) {
-          const qrRaw = generateQRCodeString(qrData)
-          const qrFields = qrCodeDataToTransactionFields(qrData, qrRaw)
-          await updateFile(fileRecord.id, user.id, {
-            cachedParseResult: qrFields as Record<string, unknown>,
-          })
+      // Fire-and-forget QR pre-classification. We do NOT await — the
+      // server action returns as soon as the file is on disk and in
+      // the DB, so the user gets the upload spinner back in <1s. The
+      // promise keeps running in the same node process; when it
+      // resolves, cachedParseResult is updated and the next /unsorted
+      // page render (router.refresh after a short delay) shows the
+      // pre-filled fields. Failure is logged silently — most uploads
+      // don't carry an e-Fatura QR.
+      void (async () => {
+        try {
+          const qrData = await extractQRCodeFromFile(fullFilePath, file.type)
+          if (qrData) {
+            const qrRaw = generateQRCodeString(qrData)
+            const qrFields = qrCodeDataToTransactionFields(qrData, qrRaw)
+            await updateFile(fileRecord.id, user.id, {
+              cachedParseResult: qrFields as Record<string, unknown>,
+            })
+          }
+        } catch (err) {
+          console.warn("[upload] background QR scan failed:", err instanceof Error ? err.message : err)
         }
-      } catch (err) {
-        console.warn("[upload] QR pre-classification failed:", err instanceof Error ? err.message : err)
-      }
+      })()
 
       return fileRecord
     })
