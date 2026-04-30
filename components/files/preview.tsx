@@ -2,7 +2,7 @@
 
 import { formatBytes } from "@/lib/utils"
 import { File } from "@/prisma/client"
-import { CheckCircle2, ChevronLeft, ChevronRight, ZoomIn, ZoomOut } from "lucide-react"
+import { CheckCircle2, ZoomIn, ZoomOut } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 
@@ -10,15 +10,15 @@ export function FilePreview({ file }: { file: File }) {
   const [isEnlarged, setIsEnlarged] = useState(false)
   const [imgError, setImgError] = useState(false)
   const [zoom, setZoom] = useState(1)
-  const [page, setPage] = useState(1)
   const [pageCount, setPageCount] = useState(1)
   const isPdf = file.mimetype === "application/pdf"
   const isAnalyzed = !!file.cachedParseResult
 
   // Fetch page count from the preview route's X-Page-Count header so
-  // we can render multi-page navigation. HEAD avoids pulling the WebP
-  // body just to read the count.
+  // we render one <img> per page stacked vertically (scrollable). HEAD
+  // avoids pulling the WebP body just to read the count.
   useEffect(() => {
+    if (!isPdf) return
     let cancelled = false
     fetch(`/files/preview/${file.id}?page=1`, { method: "HEAD" })
       .then((r) => {
@@ -30,7 +30,7 @@ export function FilePreview({ file }: { file: File }) {
     return () => {
       cancelled = true
     }
-  }, [file.id])
+  }, [file.id, isPdf])
 
   const fileSize =
     file.metadata && typeof file.metadata === "object" && "size" in file.metadata ? Number(file.metadata.size) : 0
@@ -50,30 +50,7 @@ export function FilePreview({ file }: { file: File }) {
           )}
           <div className="flex items-center gap-1">
             {pageCount > 1 && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.max(1, p - 1))}
-                  disabled={page <= 1}
-                  className="p-1 rounded hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
-                  aria-label="Previous page"
-                >
-                  <ChevronLeft className="h-4 w-4" />
-                </button>
-                <span className="text-xs tabular-nums w-12 text-center">
-                  {page}/{pageCount}
-                </span>
-                <button
-                  type="button"
-                  onClick={() => setPage((p) => Math.min(pageCount, p + 1))}
-                  disabled={page >= pageCount}
-                  className="p-1 rounded hover:bg-muted disabled:opacity-40 disabled:cursor-not-allowed"
-                  aria-label="Next page"
-                >
-                  <ChevronRight className="h-4 w-4" />
-                </button>
-                <span className="mx-1 h-4 w-px bg-border" />
-              </>
+              <span className="text-xs text-muted-foreground mr-2">{pageCount} páginas</span>
             )}
             <button
               type="button"
@@ -99,24 +76,27 @@ export function FilePreview({ file }: { file: File }) {
             don't blow out the layout. */}
         <div className={`overflow-auto ${isPdf ? "h-[min(85vh,900px)] min-h-[500px]" : "aspect-[3/4]"}`}>
           {isPdf ? (
-            // The /files/preview route serves rasterised WebP pages (LLM
-            // vision can't ingest application/pdf), so we render it as an
-            // <img> with explicit ?page=N navigation rather than relying
-            // on the browser PDF viewer.
-            <>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                key={page}
-                src={`/files/preview/${file.id}?page=${page}`}
-                alt={`${file.filename} — página ${page}`}
-                className="w-full max-w-full h-auto object-contain"
-                style={
-                  zoom !== 1
-                    ? { transform: `scale(${zoom})`, transformOrigin: "top left", width: `${100 / zoom}%` }
-                    : undefined
-                }
-              />
-            </>
+            // /files/preview serves rasterised WebP pages (LLM vision
+            // can't ingest application/pdf). Stack every page vertically
+            // inside the scrollable container so the user sees the whole
+            // document at once — typical invoice review flow.
+            <div className="flex flex-col gap-2">
+              {Array.from({ length: pageCount }, (_, idx) => (
+                /* eslint-disable-next-line @next/next/no-img-element */
+                <img
+                  key={idx}
+                  src={`/files/preview/${file.id}?page=${idx + 1}`}
+                  alt={`${file.filename} — página ${idx + 1}`}
+                  loading={idx === 0 ? "eager" : "lazy"}
+                  className="w-full max-w-full h-auto object-contain"
+                  style={
+                    zoom !== 1
+                      ? { transform: `scale(${zoom})`, transformOrigin: "top left", width: `${100 / zoom}%` }
+                      : undefined
+                  }
+                />
+              ))}
+            </div>
           ) : (
             <>
               {/* eslint-disable-next-line @next/next/no-img-element */}
