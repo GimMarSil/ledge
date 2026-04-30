@@ -74,6 +74,33 @@ export const transactionFormSchema = z
         const num = parseFloat(val)
         return isNaN(num) ? null : Math.round(num * 100)
       }),
+    vatRate: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((val) => {
+        if (val == null || val === "" || val === "null") return null
+        const num = parseFloat(val)
+        return isNaN(num) ? null : num
+      }),
+    withholdingRate: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((val) => {
+        if (val == null || val === "" || val === "null") return null
+        const num = parseFloat(val)
+        return isNaN(num) ? null : num
+      }),
+    withholdingAmount: z
+      .string()
+      .optional()
+      .nullable()
+      .transform((val) => {
+        if (val == null || val === "" || val === "null") return null
+        const num = parseFloat(val)
+        return isNaN(num) ? null : Math.round(num * 100)
+      }),
     items: z
       .string()
       .optional()

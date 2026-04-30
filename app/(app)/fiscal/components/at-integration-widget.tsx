@@ -98,7 +98,7 @@ export function ATNewsWidget({ news }: { news: ATNewsItem[] }) {
   )
 }
 
-// ─── Componente de Links de Servicos AT ────────────────────────────
+// ─── Componente de Links de Serviços AT ────────────────────────────
 
 export function ATServiceLinksWidget({
   links,
@@ -112,10 +112,10 @@ export function ATServiceLinksWidget({
       <CardHeader className="pb-3">
         <CardTitle className="text-lg font-semibold flex items-center gap-2">
           <Landmark className="h-5 w-5 text-muted-foreground" />
-          Servicos AT
+          Serviços AT
         </CardTitle>
         <p className="text-xs text-muted-foreground">
-          Acesso rapido aos servicos da Autoridade Tributaria para {BUSINESS_REGIME_LABELS[regime]}
+          Acesso rápido aos serviços da Autoridade Tributária para {BUSINESS_REGIME_LABELS[regime]}
         </p>
       </CardHeader>
       <CardContent>
@@ -147,7 +147,7 @@ export function ATServiceLinksWidget({
   )
 }
 
-// ─── Banner de configuracao de regime ──────────────────────────────
+// ─── Banner de configuração de regime ──────────────────────────────
 
 export function RegimeConfigBanner({ isConfigured }: { isConfigured: boolean }) {
   if (isConfigured) return null

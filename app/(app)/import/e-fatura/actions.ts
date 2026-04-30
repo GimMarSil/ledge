@@ -94,6 +94,22 @@ export async function importEFaturaAction(
           total: row.totalCents,
           vatAmount: row.vatCents,
           subtotal: row.subtotalCents,
+          // /fiscal aggregates by vatRate. The AT CSV doesn't carry a
+          // rate column, so we infer it from vatAmount / subtotal and
+          // snap to the closest standard PT rate (0, 6, 13, 23%).
+          vatRate: snapToPtVatRate(row.subtotalCents, row.vatCents),
+          // Persist a one-row breakdown too — saftexport and the
+          // dashboard prefer this shape when it's present.
+          vatBreakdown:
+            row.subtotalCents > 0 && row.vatCents > 0
+              ? [
+                  {
+                    rate: snapToPtVatRate(row.subtotalCents, row.vatCents),
+                    base: row.subtotalCents / 100,
+                    vat: row.vatCents / 100,
+                  },
+                ]
+              : Prisma.JsonNull,
           currencyCode: "EUR",
           treasuryAccountCode: "personal",
           fiscalStatus: "registered",
@@ -121,6 +137,25 @@ export async function importEFaturaAction(
     success: true,
     data: { batchId: batch.id, imported, skipped, errors: txErrors },
   }
+}
+
+// Standard mainland PT VAT rates. Reduced rates differ on the islands
+// (Madeira/Açores) but the AT CSV doesn't disambiguate, so we accept a
+// small tolerance and pick the closest mainland rate.
+const PT_VAT_RATES = [0, 6, 13, 23]
+function snapToPtVatRate(baseCents: number, vatCents: number): number {
+  if (baseCents <= 0) return 0
+  const computed = (vatCents * 100) / baseCents
+  let best = 0
+  let bestDelta = Number.POSITIVE_INFINITY
+  for (const r of PT_VAT_RATES) {
+    const d = Math.abs(r - computed)
+    if (d < bestDelta) {
+      best = r
+      bestDelta = d
+    }
+  }
+  return best
 }
 
 /**

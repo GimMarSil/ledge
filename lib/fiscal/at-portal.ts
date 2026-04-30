@@ -2,8 +2,8 @@
  * Integracao com o Portal da Autoridade Tributaria (AT)
  * https://info.portaldasfinancas.gov.pt
  *
- * Busca noticias, instrucoes administrativas e atualizacoes legislativas.
- * Fornece links diretos para servicos AT relevantes por regime fiscal.
+ * Busca notícias, instruções administrativas e atualizações legislativas.
+ * Fornece links diretos para serviços AT relevantes por regime fiscal.
  */
 
 import { BusinessRegime } from "./calendar"
@@ -25,7 +25,7 @@ export interface ATServiceLink {
   icon: string // lucide icon name
 }
 
-// ─── Cache de noticias (15 min) ────────────────────────────────────
+// ─── Cache de notícias (15 min) ────────────────────────────────────
 
 let newsCache: { items: ATNewsItem[]; fetchedAt: number } | null = null
 const NEWS_CACHE_TTL = 15 * 60 * 1000 // 15 minutos
@@ -119,7 +119,7 @@ function getFallbackNews(): ATNewsItem[] {
   // Noticias estaticas como fallback quando o fetch falha
   return [
     {
-      title: "IRS 2025 - Declaracao Modelo 3",
+      title: "IRS 2025 - Declaração Modelo 3",
       description: "Periodo de entrega: 1 de Abril a 30 de Junho de 2026",
       url: "https://irs.portaldasfinancas.gov.pt/home.action",
       date: "01/04/2026",
@@ -135,7 +135,7 @@ function getFallbackNews(): ATNewsItem[] {
   ]
 }
 
-// ─── Links de servicos AT por regime ───────────────────────────────
+// ─── Links de serviços AT por regime ───────────────────────────────
 
 const COMMON_LINKS: ATServiceLink[] = [
   {
@@ -161,7 +161,7 @@ const COMMON_LINKS: ATServiceLink[] = [
 const REGIME_SPECIFIC_LINKS: Record<BusinessRegime, ATServiceLink[]> = {
   trabalhador_dependente: [
     {
-      name: "IRS - Declaracao",
+      name: "IRS - Declaração",
       description: "Submeter declaracao anual de IRS",
       url: "https://irs.portaldasfinancas.gov.pt/home.action",
       icon: "FileCheck",
@@ -175,20 +175,20 @@ const REGIME_SPECIFIC_LINKS: Record<BusinessRegime, ATServiceLink[]> = {
   ],
   trabalhador_independente: [
     {
-      name: "IRS - Declaracao",
+      name: "IRS - Declaração",
       description: "Submeter declaracao de IRS (Anexo B)",
       url: "https://irs.portaldasfinancas.gov.pt/home.action",
       icon: "FileCheck",
     },
     {
-      name: "IVA - Declaracao Periodica",
-      description: "Entregar declaracao periodica de IVA",
+      name: "IVA - Declaração Periódica",
+      description: "Entregar declaração periódica de IVA",
       url: "https://sitfiscal.portaldasfinancas.gov.pt/geral/home?areaDestino=TR",
       icon: "Calculator",
     },
     {
       name: "Recibos Verdes",
-      description: "Emitir recibos verdes eletronicos",
+      description: "Emitir recibos verdes eletrónicos",
       url: "https://faturas.portaldasfinancas.gov.pt",
       icon: "Receipt",
     },
@@ -201,14 +201,14 @@ const REGIME_SPECIFIC_LINKS: Record<BusinessRegime, ATServiceLink[]> = {
       icon: "FileCheck",
     },
     {
-      name: "IVA - Declaracao Periodica",
-      description: "Entregar declaracao periodica de IVA",
+      name: "IVA - Declaração Periódica",
+      description: "Entregar declaração periódica de IVA",
       url: "https://sitfiscal.portaldasfinancas.gov.pt/geral/home?areaDestino=TR",
       icon: "Calculator",
     },
     {
-      name: "IES - Declaracao Anual",
-      description: "Submeter IES/Declaracao Anual",
+      name: "IES - Declaração Anual",
+      description: "Submeter IES/Declaração Anual",
       url: "https://sitfiscal.portaldasfinancas.gov.pt/geral/home?areaDestino=TR",
       icon: "ClipboardList",
     },
@@ -221,14 +221,14 @@ const REGIME_SPECIFIC_LINKS: Record<BusinessRegime, ATServiceLink[]> = {
       icon: "FileCheck",
     },
     {
-      name: "IVA - Declaracao Periodica",
-      description: "Entregar declaracao periodica de IVA",
+      name: "IVA - Declaração Periódica",
+      description: "Entregar declaração periódica de IVA",
       url: "https://sitfiscal.portaldasfinancas.gov.pt/geral/home?areaDestino=TR",
       icon: "Calculator",
     },
     {
-      name: "IES - Declaracao Anual",
-      description: "Submeter IES/Declaracao Anual",
+      name: "IES - Declaração Anual",
+      description: "Submeter IES/Declaração Anual",
       url: "https://sitfiscal.portaldasfinancas.gov.pt/geral/home?areaDestino=TR",
       icon: "ClipboardList",
     },
@@ -247,14 +247,14 @@ const REGIME_SPECIFIC_LINKS: Record<BusinessRegime, ATServiceLink[]> = {
       icon: "FileCheck",
     },
     {
-      name: "IVA - Declaracao Periodica",
-      description: "Entregar declaracao periodica de IVA",
+      name: "IVA - Declaração Periódica",
+      description: "Entregar declaração periódica de IVA",
       url: "https://sitfiscal.portaldasfinancas.gov.pt/geral/home?areaDestino=TR",
       icon: "Calculator",
     },
     {
-      name: "IES - Declaracao Anual",
-      description: "Submeter IES/Declaracao Anual",
+      name: "IES - Declaração Anual",
+      description: "Submeter IES/Declaração Anual",
       url: "https://sitfiscal.portaldasfinancas.gov.pt/geral/home?areaDestino=TR",
       icon: "ClipboardList",
     },
@@ -273,14 +273,14 @@ const REGIME_SPECIFIC_LINKS: Record<BusinessRegime, ATServiceLink[]> = {
       icon: "FileCheck",
     },
     {
-      name: "IVA - Declaracao Periodica",
-      description: "Entregar declaracao periodica de IVA",
+      name: "IVA - Declaração Periódica",
+      description: "Entregar declaração periódica de IVA",
       url: "https://sitfiscal.portaldasfinancas.gov.pt/geral/home?areaDestino=TR",
       icon: "Calculator",
     },
     {
-      name: "IES - Declaracao Anual",
-      description: "Submeter IES/Declaracao Anual",
+      name: "IES - Declaração Anual",
+      description: "Submeter IES/Declaração Anual",
       url: "https://sitfiscal.portaldasfinancas.gov.pt/geral/home?areaDestino=TR",
       icon: "ClipboardList",
     },
@@ -292,7 +292,7 @@ const REGIME_SPECIFIC_LINKS: Record<BusinessRegime, ATServiceLink[]> = {
     },
     {
       name: "Grandes Contribuintes",
-      description: "Servicos para grandes contribuintes",
+      description: "Serviços para grandes contribuintes",
       url: "https://sitfiscal.portaldasfinancas.gov.pt/geral/home?areaDestino=TR",
       icon: "Building2",
     },

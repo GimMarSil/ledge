@@ -98,7 +98,7 @@ export function FiscalDashboard({
   const totalVatDeductible = vatSummary.reduce((sum, v) => sum + v.vatDeductible, 0)
   const vatBalance = totalVatCollected - totalVatDeductible
 
-  // Retencoes na fonte
+  // Retenções na fonte
   const totalWithholding = incomeTransactions.reduce((sum, t) => sum + (t.withholdingAmount || 0), 0)
 
   // Documentos sem NIF
@@ -123,10 +123,10 @@ export function FiscalDashboard({
         onYearChange={setYear}
       />
 
-      {/* Banner de configuracao (se regime nao definido) */}
+      {/* Banner de configuração (se regime não definido) */}
       <RegimeConfigBanner isConfigured={isRegimeConfigured} />
 
-      {/* Metricas principais */}
+      {/* Métricas principais */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
         <MetricCard
           title="Receitas"
@@ -147,13 +147,13 @@ export function FiscalDashboard({
           color="text-blue-600 dark:text-blue-400"
         />
         <MetricCard
-          title="IVA Dedutivel"
+          title="IVA Dedutível"
           value={formatCurrency(totalVatDeductible, "EUR")}
           subtitle="Despesas dedutiveis"
           color="text-violet-600 dark:text-violet-400"
         />
         <MetricCard
-          title="Retencoes na Fonte"
+          title="Retenções na Fonte"
           value={formatCurrency(totalWithholding, "EUR")}
           subtitle="Retidas sobre receitas"
           color="text-orange-600 dark:text-orange-400"
@@ -169,7 +169,7 @@ export function FiscalDashboard({
         </div>
       </div>
 
-      {/* Calendario Fiscal */}
+      {/* Calendário Fiscal */}
       <FiscalCalendarWidget
         upcomingDeadlines={upcomingDeadlines}
         overdueDeadlines={overdueDeadlines}
@@ -188,7 +188,7 @@ export function FiscalDashboard({
               <tr className="border-b bg-muted/50">
                 <th className="px-6 py-3 text-left font-medium">Taxa</th>
                 <th className="px-6 py-3 text-right font-medium">IVA Liquidado</th>
-                <th className="px-6 py-3 text-right font-medium">IVA Dedutivel</th>
+                <th className="px-6 py-3 text-right font-medium">IVA Dedutível</th>
                 <th className="px-6 py-3 text-right font-medium">Saldo</th>
               </tr>
             </thead>
@@ -206,7 +206,7 @@ export function FiscalDashboard({
               {vatSummary.length === 0 && (
                 <tr>
                   <td colSpan={4} className="px-6 py-8 text-center text-muted-foreground">
-                    Sem dados de IVA para este periodo
+                    Sem dados de IVA para este período
                   </td>
                 </tr>
               )}
@@ -233,7 +233,7 @@ export function FiscalDashboard({
           <ul className="space-y-2 text-sm text-amber-700 dark:text-amber-300">
             {overdueDeadlines.length > 0 && (
               <li className="font-medium">
-                {overdueDeadlines.length} obrigacao{overdueDeadlines.length > 1 ? "es" : ""} fiscal{overdueDeadlines.length > 1 ? "is" : ""} em atraso
+                {overdueDeadlines.length} obrigação{overdueDeadlines.length > 1 ? "ões" : ""} fiscal{overdueDeadlines.length > 1 ? "is" : ""} em atraso
               </li>
             )}
             {missingNifCount > 0 && (
@@ -243,20 +243,20 @@ export function FiscalDashboard({
             )}
             {missingDocTypeCount > 0 && (
               <li>
-                {missingDocTypeCount} transacao{missingDocTypeCount > 1 ? "es" : ""} sem tipo de documento fiscal
+                {missingDocTypeCount} transação{missingDocTypeCount > 1 ? "ões" : ""} sem tipo de documento fiscal
               </li>
             )}
           </ul>
         </div>
       )}
 
-      {/* AT: Noticias + Links de Servicos */}
+      {/* AT: Notícias + Links de Serviços */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <ATNewsWidget news={atNews} />
         <ATServiceLinksWidget links={atServiceLinks} regime={regime} />
       </div>
 
-      {/* Acoes */}
+      {/* Ações */}
       <div className="flex gap-3">
         <SAFTExportDialog />
       </div>

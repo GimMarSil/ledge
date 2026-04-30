@@ -208,9 +208,9 @@ export function FiscalCalendarWidget({
         {/* Natural language summary */}
         <p className="text-sm text-muted-foreground mt-1">
           {overdueDeadlines.length > 0
-            ? `Tem ${overdueDeadlines.length} obrigacao${overdueDeadlines.length > 1 ? "es" : ""} em atraso.`
+            ? `Tem ${overdueDeadlines.length} obrigação${overdueDeadlines.length > 1 ? "ões" : ""} em atraso.`
             : urgentCount > 0
-              ? `Tem ${urgentCount} obrigacao${urgentCount > 1 ? "es" : ""} nos proximos 7 dias.`
+              ? `Tem ${urgentCount} obrigação${urgentCount > 1 ? "ões" : ""} nos próximos 7 dias.`
               : upcomingDeadlines.length > 0
                 ? `Proxima obrigacao: ${upcomingDeadlines[0].name} em ${getDaysUntilDeadline(upcomingDeadlines[0])} dias.`
                 : "Sem obrigacoes pendentes."

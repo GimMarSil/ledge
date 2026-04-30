@@ -242,6 +242,12 @@ const ALWAYS_STANDARD_KEYS = new Set<string>([
   "reimbursementStatus",
   "reimbursementPaidAt",
   "importBatchId",
+  // Fiscal/IVA — these were silently dropped on save when the user
+  // had no Field row for them, so /fiscal aggregations stayed at zero.
+  "vatRate",
+  "withholdingRate",
+  "withholdingAmount",
+  "fiscalStatus",
 ])
 
 const splitTransactionDataExtraFields = async (

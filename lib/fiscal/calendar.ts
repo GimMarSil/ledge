@@ -30,7 +30,7 @@ export type FiscalObligationType =
   | "irc_pagamento_especial"
   | "ies"
   | "tsu"
-  | "comunicacao_faturas"
+  | "comunicação_faturas"
   | "retencoes_fonte"
 
 export type UrgencyLevel = "overdue" | "urgent" | "soon" | "upcoming" | "distant"
@@ -54,7 +54,7 @@ interface FiscalObligation {
   getDeadlines(year: number): FiscalDeadlineInstance[]
 }
 
-// ─── Helper: ultimo dia util do mes ────────────────────────────────
+// ─── Helper: último dia útil do mes ────────────────────────────────
 
 function lastBusinessDay(year: number, month: number): Date {
   // month is 0-indexed
@@ -76,8 +76,8 @@ const FISCAL_OBLIGATIONS: FiscalObligation[] = [
   // IVA Mensal - dia 10 do 2o mes seguinte
   {
     type: "iva_mensal",
-    name: "Declaracao Periodica IVA (Mensal)",
-    description: "Entrega mensal da declaracao periodica de IVA e respetivo pagamento",
+    name: "Declaração Periodica IVA (Mensal)",
+    description: "Entrega mensal da declaração periodica de IVA e respetivo pagamento",
     frequency: "monthly",
     applicableRegimes: ["pme", "grande_empresa", "sgps"],
     legalBasis: "Art. 41.o do CIVA",
@@ -90,7 +90,7 @@ const FISCAL_OBLIGATIONS: FiscalObligation[] = [
         const dueMonthIdx = dueMonth % 12
         deadlines.push({
           type: "iva_mensal",
-          name: "Declaracao Periodica IVA",
+          name: "Declaração Periodica IVA",
           description: `IVA referente a ${MONTH_NAMES[month]} ${year}`,
           dueDate: new Date(dueYear, dueMonthIdx, 10),
           referencePeriod: `${MONTH_NAMES[month]} ${year}`,
@@ -104,8 +104,8 @@ const FISCAL_OBLIGATIONS: FiscalObligation[] = [
   // IVA Trimestral - dia 15 do 2o mes apos trimestre
   {
     type: "iva_trimestral",
-    name: "Declaracao Periodica IVA (Trimestral)",
-    description: "Entrega trimestral da declaracao periodica de IVA e respetivo pagamento",
+    name: "Declaração Periodica IVA (Trimestral)",
+    description: "Entrega trimestral da declaração periodica de IVA e respetivo pagamento",
     frequency: "quarterly",
     applicableRegimes: ["trabalhador_independente", "micro_empresa"],
     legalBasis: "Art. 41.o do CIVA",
@@ -118,7 +118,7 @@ const FISCAL_OBLIGATIONS: FiscalObligation[] = [
       ]
       return quarters.map((q) => ({
         type: "iva_trimestral" as const,
-        name: "Declaracao Periodica IVA",
+        name: "Declaração Periodica IVA",
         description: `IVA referente ao ${q.q} (${q.months}) de ${year}`,
         dueDate: new Date(q.nextYear ? year + 1 : year, q.dueMonth - 1, q.dueDay),
         referencePeriod: `${q.q} ${year}`,
@@ -130,16 +130,16 @@ const FISCAL_OBLIGATIONS: FiscalObligation[] = [
   // IRS Anual - 1 Abril a 30 Junho
   {
     type: "irs_anual",
-    name: "Declaracao Anual de IRS (Modelo 3)",
-    description: "Entrega da declaracao anual de rendimentos (IRS)",
+    name: "Declaração Anual de IRS (Modelo 3)",
+    description: "Entrega da declaração anual de rendimentos (IRS)",
     frequency: "annual",
     applicableRegimes: ["trabalhador_dependente", "trabalhador_independente"],
     legalBasis: "Art. 60.o do CIRS",
     getDeadlines(year: number) {
       return [{
         type: "irs_anual",
-        name: "Declaracao IRS (Modelo 3)",
-        description: `Declaracao de rendimentos de ${year - 1}. Periodo: 1 Abril - 30 Junho ${year}`,
+        name: "Declaração IRS (Modelo 3)",
+        description: `Declaração de rendimentos de ${year - 1}. Período: 1 Abril - 30 Junho ${year}`,
         dueDate: new Date(year, 5, 30), // 30 June
         referencePeriod: `Ano ${year - 1}`,
         legalBasis: "Art. 60.o do CIRS",
@@ -175,16 +175,16 @@ const FISCAL_OBLIGATIONS: FiscalObligation[] = [
   // IRC Modelo 22 - ultimo dia de Maio
   {
     type: "irc_modelo22",
-    name: "Declaracao IRC (Modelo 22)",
-    description: "Entrega da declaracao anual de IRC e pagamento do imposto",
+    name: "Declaração IRC (Modelo 22)",
+    description: "Entrega da declaração anual de IRC e pagamento do imposto",
     frequency: "annual",
     applicableRegimes: ["micro_empresa", "pme", "sgps", "grande_empresa"],
     legalBasis: "Art. 120.o do CIRC",
     getDeadlines(year: number) {
       return [{
         type: "irc_modelo22",
-        name: "Declaracao IRC (Modelo 22)",
-        description: `Declaracao de rendimentos de ${year - 1}. Prazo: ultimo dia util de Maio ${year}`,
+        name: "Declaração IRC (Modelo 22)",
+        description: `Declaração de rendimentos de ${year - 1}. Prazo: último dia útil de Maio ${year}`,
         dueDate: lastBusinessDay(year, 4), // May (0-indexed)
         referencePeriod: `Ano ${year - 1}`,
         legalBasis: "Art. 120.o do CIRC",
@@ -192,7 +192,7 @@ const FISCAL_OBLIGATIONS: FiscalObligation[] = [
     },
   },
 
-  // IRC Pagamentos por Conta - Jul/Set/Dez ultimo dia util
+  // IRC Pagamentos por Conta - Jul/Set/Dez último dia útil
   {
     type: "irc_pagamento_conta",
     name: "Pagamento por Conta IRC",
@@ -217,7 +217,7 @@ const FISCAL_OBLIGATIONS: FiscalObligation[] = [
     },
   },
 
-  // IRC Pagamento Especial por Conta - ultimo dia util de Marco
+  // IRC Pagamento Especial por Conta - último dia útil de Março
   {
     type: "irc_pagamento_especial",
     name: "Pagamento Especial por Conta IRC",
@@ -240,16 +240,16 @@ const FISCAL_OBLIGATIONS: FiscalObligation[] = [
   // IES - 15 de Julho
   {
     type: "ies",
-    name: "IES (Informacao Empresarial Simplificada)",
-    description: "Entrega da declaracao anual de informacao contabilistica e fiscal",
+    name: "IES (Informação Empresarial Simplificada)",
+    description: "Entrega da declaração anual de informação contabilística e fiscal",
     frequency: "annual",
     applicableRegimes: ["micro_empresa", "pme", "sgps", "grande_empresa"],
     legalBasis: "DL 8/2007",
     getDeadlines(year: number) {
       return [{
         type: "ies",
-        name: "IES / Declaracao Anual",
-        description: `Informacao empresarial simplificada relativa a ${year - 1}. Prazo: 15 Julho ${year}`,
+        name: "IES / Declaração Anual",
+        description: `Informação empresarial simplificada relativa a ${year - 1}. Prazo: 15 Julho ${year}`,
         dueDate: new Date(year, 6, 15), // July 15
         referencePeriod: `Ano ${year - 1}`,
         legalBasis: "DL 8/2007",
@@ -257,14 +257,14 @@ const FISCAL_OBLIGATIONS: FiscalObligation[] = [
     },
   },
 
-  // TSU - dia 10 a 20 do mes seguinte
+  // TSU - dia 10 a 20 do mês seguinte
   {
     type: "tsu",
-    name: "TSU (Contribuicoes Seguranca Social)",
-    description: "Pagamento mensal das contribuicoes para a Seguranca Social",
+    name: "TSU (Contribuições Segurança Social)",
+    description: "Pagamento mensal das contribuições para a Segurança Social",
     frequency: "monthly",
     applicableRegimes: ["trabalhador_independente", "micro_empresa", "pme", "sgps", "grande_empresa"],
-    legalBasis: "Codigo Contributivo",
+    legalBasis: "Código Contributivo",
     getDeadlines(year: number) {
       const deadlines: FiscalDeadlineInstance[] = []
       for (let month = 0; month < 12; month++) {
@@ -272,22 +272,22 @@ const FISCAL_OBLIGATIONS: FiscalObligation[] = [
         const dueYear = month === 11 ? year + 1 : year
         deadlines.push({
           type: "tsu",
-          name: "TSU - Seguranca Social",
-          description: `Contribuicoes referentes a ${MONTH_NAMES[month]} ${year}`,
+          name: "TSU - Segurança Social",
+          description: `Contribuições referentes a ${MONTH_NAMES[month]} ${year}`,
           dueDate: new Date(dueYear, dueMonth, 20),
           referencePeriod: `${MONTH_NAMES[month]} ${year}`,
-          legalBasis: "Codigo Contributivo",
+          legalBasis: "Código Contributivo",
         })
       }
       return deadlines
     },
   },
 
-  // Comunicacao de faturas AT - dia 5 do mes seguinte
+  // Comunicação de faturas AT - dia 5 do mês seguinte
   {
-    type: "comunicacao_faturas",
-    name: "Comunicacao de Faturas a AT",
-    description: "Comunicacao mensal dos elementos das faturas emitidas",
+    type: "comunicação_faturas",
+    name: "Comunicação de Faturas a AT",
+    description: "Comunicação mensal dos elementos das faturas emitidas",
     frequency: "monthly",
     applicableRegimes: ["trabalhador_independente", "micro_empresa", "pme", "sgps", "grande_empresa"],
     legalBasis: "Art. 3.o do DL 198/2012",
@@ -297,9 +297,9 @@ const FISCAL_OBLIGATIONS: FiscalObligation[] = [
         const dueMonth = (month + 1) % 12
         const dueYear = month === 11 ? year + 1 : year
         deadlines.push({
-          type: "comunicacao_faturas",
-          name: "Comunicacao Faturas AT",
-          description: `Comunicacao de faturas de ${MONTH_NAMES[month]} ${year} via e-fatura ou SAF-T`,
+          type: "comunicação_faturas",
+          name: "Comunicação Faturas AT",
+          description: `Comunicação de faturas de ${MONTH_NAMES[month]} ${year} via e-fatura ou SAF-T`,
           dueDate: new Date(dueYear, dueMonth, 5),
           referencePeriod: `${MONTH_NAMES[month]} ${year}`,
           legalBasis: "Art. 3.o do DL 198/2012",
@@ -309,7 +309,7 @@ const FISCAL_OBLIGATIONS: FiscalObligation[] = [
     },
   },
 
-  // Retencoes na Fonte - dia 20 do mes seguinte
+  // Retencoes na Fonte - dia 20 do mês seguinte
   {
     type: "retencoes_fonte",
     name: "Retencoes na Fonte (IRS/IRC)",

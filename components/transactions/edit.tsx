@@ -210,6 +210,58 @@ export default function TransactionEditForm({
         />
       )}
 
+      <details className="rounded-md border bg-muted/30 p-3">
+        <summary className="cursor-pointer text-sm font-medium">
+          Fiscal: IVA, base, retenção na fonte
+        </summary>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+          <FormInput
+            title="Base Tributável"
+            type="number"
+            step="0.01"
+            name="subtotal"
+            defaultValue={transaction.subtotal != null ? (transaction.subtotal / 100).toFixed(2) : ""}
+          />
+          <FormInput
+            title="IVA (€)"
+            type="number"
+            step="0.01"
+            name="vatAmount"
+            defaultValue={transaction.vatAmount != null ? (transaction.vatAmount / 100).toFixed(2) : ""}
+          />
+          <FormInput
+            title="Taxa IVA (%)"
+            type="number"
+            step="0.01"
+            name="vatRate"
+            defaultValue={transaction.vatRate != null ? String(transaction.vatRate) : ""}
+          />
+          <FormInput
+            title="NIF Fornecedor"
+            name="nif"
+            defaultValue={transaction.nif ?? ""}
+          />
+          <FormInput
+            title="Retenção na Fonte (%)"
+            type="number"
+            step="0.01"
+            name="withholdingRate"
+            defaultValue={transaction.withholdingRate != null ? String(transaction.withholdingRate) : ""}
+          />
+          <FormInput
+            title="Retenção na Fonte (€)"
+            type="number"
+            step="0.01"
+            name="withholdingAmount"
+            defaultValue={
+              transaction.withholdingAmount != null
+                ? (transaction.withholdingAmount / 100).toFixed(2)
+                : ""
+            }
+          />
+        </div>
+      </details>
+
       <FormTextarea
         title={fieldMap.note.name}
         name="note"
